@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: ecosystem-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - ecosystem-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: ecosystem-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    networks:
+      - ecosystem-network
+
+  # Helper service to initialize Kafka topics with 12 partitions
+  kafka-init-topics:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: ecosystem-kafka-init
+    depends_on:
+      - kafka
+    command: >
+      bash -c "
+        echo 'Waiting for Kafka broker to start...' &&
+        cub kafka-ready -b kafka:29092 1 40 &&
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic payment.init --partitions 12 --replication-factor 1 &&
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic payment.settled --partitions 12 --replication-factor 1 &&
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic payment.dlq --partitions 6 --replication-factor 1 &&
+        echo 'Successfully provisioned topics with partition topology.'
+      "
+    networks:
+      - ecosystem-network
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.0
+    container_name: ecosystem-schema-registry
+    depends_on:
+      - kafka
+    ports:
+      - "8085:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_COMPATIBILITY: BACKWARD_TRANSITIVE
+    networks:
+      - ecosystem-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: ecosystem-postgres
+    environment:
+      POSTGRES_DB: ledgerdb
+      POSTGRES_USER: sa
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ecosystem-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ecosystem-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      - ecosystem-network
+
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.9.0
+    container_name: ecosystem-toxiproxy
+    ports:
+      - "8474:8474" # HTTP API
+      - "9093:9093" # Downstream simulated gateway proxy
+    networks:
+      - ecosystem-network
+
+networks:
+  ecosystem-network:
+    driver: bridge

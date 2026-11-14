@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+DIRNAME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -x "$DIRNAME/tools/gradle-8.10.2/bin/gradle" ]; then
+    exec "$DIRNAME/tools/gradle-8.10.2/bin/gradle" "$@"
+elif [ -x "$DIRNAME/../tools/gradle-8.10.2/bin/gradle" ]; then
+    exec "$DIRNAME/../tools/gradle-8.10.2/bin/gradle" "$@"
+else
+    gradle "$@"
+fi

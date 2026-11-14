@@ -1,0 +1,8 @@
+rootProject.name = 'enterprise-payment-ecosystem'
+
+include 'shared:common-dsa'
+include 'shared:common-events'
+include 'services:ingestion-service'
+include 'services:ledger-service'
+include 'services:notification-service'
+include 'services:analytics-cqrs-service'

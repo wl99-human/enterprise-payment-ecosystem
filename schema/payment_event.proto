@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package com.enterprise.payment.events;
+
+option java_multiple_files = true;
+option java_package = "com.enterprise.payments.events.proto";
+option java_outer_classname = "PaymentEventProto";
+
+enum TransactionStatus {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_PENDING = 1;
+  STATUS_SETTLED = 2;
+  STATUS_FAILED = 3;
+  STATUS_REJECTED = 4;
+}
+
+enum PostingDirection {
+  DIRECTION_UNSPECIFIED = 0;
+  DIRECTION_DEBIT = 1;
+  DIRECTION_CREDIT = 2;
+}
+
+message PaymentInitEvent {
+  string transaction_id = 1;
+  string idempotency_key = 2;
+  string sender_account_id = 3;
+  string receiver_account_id = 4;
+  int64 amount_minor_units = 5;
+  string currency = 6;
+  string payload_hash = 7;
+  int64 created_at_epoch_ms = 8;
+  bytes encrypted_payload = 9; // Envelope-encrypted PII (DEK + KMS wrapped)
+}
+
+message PaymentSettledEvent {
+  string transaction_id = 1;
+  string idempotency_key = 2;
+  string sender_account_id = 3;
+  string receiver_account_id = 4;
+  int64 amount_minor_units = 5;
+  string currency = 6;
+  int64 sender_balance_after_minor_units = 7;
+  int64 receiver_balance_after_minor_units = 8;
+  repeated int64 journal_posting_ids = 9;
+  TransactionStatus status = 10;
+  int64 settled_at_epoch_ms = 11;
+  bytes encrypted_payload = 12;
+}
+
+message PaymentDlqEvent {
+  string transaction_id = 1;
+  string idempotency_key = 2;
+  string original_topic = 3;
+  string failure_reason = 4;
+  int32 retry_count = 5;
+  string stack_trace_snippet = 6;
+  int64 failed_at_epoch_ms = 7;
+  bytes original_payload = 8;
+}

@@ -1,0 +1,38 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ingestion-service
+  threads:
+    virtual:
+      enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+
+ecosystem:
+  security:
+    hmac-secret: ${HMAC_SECRET:enterprise-prod-secret-key-2026-sha256}
+  rate-limit:
+    window-millis: 10000
+    max-requests: 100
+  bloom-filter:
+    expected-insertions: 500000
+    false-positive-probability: 0.01
+  topics:
+    payment-init: payment.init
+    payment-settled: payment.settled
+    payment-dlq: payment.dlq
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus

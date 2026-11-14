@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecosystem-config
+  namespace: payments-ecosystem
+data:
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-service:9092"
+  SCHEMA_REGISTRY_URL: "http://schema-registry-service:8081"
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "ledgerdb"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-service:5432/ledgerdb"
+  TOPIC_PAYMENT_INIT: "payment.init"
+  TOPIC_PAYMENT_SETTLED: "payment.settled"
+  TOPIC_PAYMENT_DLQ: "payment.dlq"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ecosystem-secrets
+  namespace: payments-ecosystem
+type: Opaque
+stringData:
+  POSTGRES_USER: "sa"
+  POSTGRES_PASSWORD: "ProductionSecureDbPassword2026!"
+  HMAC_SECRET_KEY: "super-secret-hmac-sha256-signing-key-for-transfers"
+  KMS_KEK_MASTER_KEY: "kms-master-key-encryption-key-wrapped-aes256"
