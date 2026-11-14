@@ -105,8 +105,19 @@ foreach ($svc in $services) {
 # 4. Launch Frontend MFE Shell
 if (-not $BackendOnly) {
     if (Test-Path $frontendDir) {
+        $nodeModules = Join-Path $frontendDir "node_modules"
+        if (-not (Test-Path $nodeModules)) {
+            Write-Host "`n>>> [Notice] 'node_modules' not found in frontend. Running 'npm install'..." -ForegroundColor Yellow
+            Push-Location $frontendDir
+            try {
+                npm install
+            } finally {
+                Pop-Location
+            }
+        }
+
         $feTitle = "Ecosystem - Frontend MFE Shell [Port 3000/3001]"
-        $feCmd = "`$host.UI.RawUI.WindowTitle = '$feTitle'; Write-Host '>>> Starting Frontend MFE Shell...' -ForegroundColor Cyan; cd '$frontendDir'; npm run dev"
+        $feCmd = "`$host.UI.RawUI.WindowTitle = '$feTitle'; Write-Host '>>> Starting Frontend MFE Shell...' -ForegroundColor Cyan; cd '$frontendDir'; if (-not (Test-Path 'node_modules')) { npm install }; npm run dev"
         Start-Process powershell -ArgumentList "-NoExit", "-Command", $feCmd
         Write-Host "  [OK] Launched Frontend MFE Shell in background window" -ForegroundColor Green
     }
