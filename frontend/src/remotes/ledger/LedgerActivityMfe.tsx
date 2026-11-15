@@ -286,7 +286,7 @@ export const LedgerActivityMfe: React.FC<LedgerActivityMfeProps> = ({
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.84rem' }}>
-              <thead>
+              <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
                 <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '1px solid #dadce0', color: '#5f6368', fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   <th style={{ padding: '12px 18px', fontWeight: 600 }}>Type</th>
                   <th style={{ padding: '12px 18px', fontWeight: 600 }}>Transaction ID</th>
