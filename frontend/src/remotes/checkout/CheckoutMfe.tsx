@@ -11,7 +11,9 @@ import {
   Clock, 
   DollarSign, 
   Copy,
-  Layers
+  Check,
+  Layers,
+  ArrowRight
 } from 'lucide-react';
 import { StepperStage, Account, OfflineQueuedTransaction } from '../../types';
 
@@ -39,6 +41,7 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
   const [offlineMode, setOfflineMode] = useState(!navigator.onLine);
   const [offlineQueue, setOfflineQueue] = useState<OfflineQueuedTransaction[]>([]);
   const [lastTxId, setLastTxId] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState(false);
 
   // Load offline queue from localStorage
   useEffect(() => {
@@ -72,6 +75,12 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
 
   const generateNewIdempotencyKey = () => {
     setIdempotencyKey(`idem_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
+  };
+
+  const handleCopyKey = () => {
+    navigator.clipboard.writeText(idempotencyKey);
+    setCopiedKey(true);
+    setTimeout(() => setCopiedKey(false), 2000);
   };
 
   // Submit transfer handler with Optimistic UI mutation & multi-stage async stepper
@@ -160,20 +169,20 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
       setStatusMessage(`Transaction settled successfully! Reference: ${txId}`);
       onCommitSettlement(currentAccount.id, recipient, amountMinor);
 
-      // Auto reset stepper after 4 seconds
+      // Auto-reset back to IDLE after 4.5s
       setTimeout(() => {
         setStage('IDLE');
+        setStatusMessage('');
         generateNewIdempotencyKey();
-      }, 4000);
+      }, 4500);
 
     } catch (err: any) {
-      // COMPENSATING ROLLBACK: Revert optimistic state mutation with animated feedback
-      console.warn('Transaction rejected, initiating compensating UI rollback', err);
+      console.warn('Payment failed or rollback simulated:', err);
       setStage('REJECTED_ROLLBACK');
-      setIsRollbackAnimating(true);
-      setStatusMessage(`REJECTED: ${err.message || 'Payment failure'}. Performing Compensating Balance Rollback!`);
+      setStatusMessage(err.message || 'Transaction rejected. Compensating rollback initiated.');
       
-      // Revert optimistic mutation
+      // Trigger rollback animation and revert balance
+      setIsRollbackAnimating(true);
       onRollbackBalanceMutation(amountMinor);
 
       setTimeout(() => {
@@ -207,16 +216,40 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
   };
 
   return (
-    <div id="checkout-mfe-container" className="glass-panel p-6 flex flex-col gap-6" style={{ padding: '24px' }}>
-      {/* Remote Header */}
-      <div className="flex items-center justify-between border-b pb-4" style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+    <div 
+      id="checkout-mfe-container" 
+      className="flex flex-col gap-6 animate-fade-in" 
+      style={{ maxWidth: '860px', margin: '0 auto', width: '100%' }}
+    >
+      {/* Remote Header Card */}
+      <div 
+        className="ui-card" 
+        style={{ 
+          padding: '24px 28px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderRadius: '16px',
+        }}
+      >
         <div className="flex items-center gap-3">
-          <div style={{ background: 'rgba(99, 102, 241, 0.15)', padding: '8px', borderRadius: 'var(--radius-md)', color: 'var(--accent-primary)' }}>
-            <Zap size={20} />
+          <div 
+            style={{ 
+              background: '#e8f0fe', 
+              padding: '12px', 
+              borderRadius: '12px', 
+              color: '#1a73e8' 
+            }}
+          >
+            <Send size={24} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: '700', letterSpacing: '-0.01em' }}>Remote 1: Checkout MFE</h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Optimistic UI & Multi-Stage Async Stepper</p>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#202124', letterSpacing: '-0.01em' }}>
+              Send Payment
+            </h2>
+            <p style={{ fontSize: '0.8rem', color: '#5f6368' }}>
+              Optimistic Balance Mutation & Multi-Stage Async Stepper
+            </p>
           </div>
         </div>
 
@@ -230,11 +263,11 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
             id="toggle-offline-btn"
             onClick={() => setOfflineMode(!offlineMode)}
             className="btn-secondary"
-            style={{ fontSize: '0.75rem', padding: '4px 10px' }}
+            style={{ fontSize: '0.78rem', padding: '6px 14px' }}
             title="Simulate Service Worker Offline Sync"
           >
-            {offlineMode ? <WifiOff size={14} color="#f43f5e" /> : <ShieldCheck size={14} color="#10b981" />}
-            {offlineMode ? 'Offline Simulated' : 'Network Online'}
+            {offlineMode ? <WifiOff size={14} color="#d93025" /> : <ShieldCheck size={14} color="#1e8e3e" />}
+            {offlineMode ? 'Offline Mode Active' : 'Network Online'}
           </button>
         </div>
       </div>
@@ -242,257 +275,312 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
       {/* Account Balance Card with Rollback Animation */}
       <div 
         id="optimistic-balance-card"
-        className={`glass-card p-4 ${isRollbackAnimating ? 'animate-shake' : ''}`}
+        className={`ui-card ${isRollbackAnimating ? 'animate-shake' : ''}`}
         style={{ 
-          padding: '16px',
-          background: isRollbackAnimating ? 'rgba(244, 63, 94, 0.12)' : 'var(--bg-glass-card)',
-          borderColor: isRollbackAnimating ? 'var(--accent-danger)' : 'var(--border-subtle)',
-          transition: 'all 0.3s ease'
+          padding: '20px 24px',
+          backgroundColor: isRollbackAnimating ? '#fce8e6' : '#ffffff',
+          borderColor: isRollbackAnimating ? '#d93025' : '#dadce0',
+          transition: 'all 0.3s ease',
+          borderRadius: '12px',
         }}
       >
         <div className="flex justify-between items-center">
           <div>
-            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Active Sender Balance ({currentAccount.name})
+            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#5f6368', fontWeight: 600 }}>
+              Sender Account: {currentAccount.name}
             </span>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: isRollbackAnimating ? 'var(--accent-danger)' : 'var(--text-primary)', marginTop: '4px' }}>
+            <div 
+              style={{ 
+                fontSize: '2rem', 
+                fontWeight: 800, 
+                color: isRollbackAnimating ? '#d93025' : '#1a73e8', 
+                marginTop: '4px',
+                letterSpacing: '-0.02em',
+              }}
+            >
               {formatCurrency(currentAccount.balanceMinorUnits)}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#5f6368', marginTop: '2px' }}>
+              Instant optimistic debits with automated rollback guarantee
             </div>
           </div>
           {isRollbackAnimating && (
             <div className="badge badge-dlq flex items-center gap-1">
-              <RotateCcw size={12} /> Rollback Applied
+              <RotateCcw size={12} /> Compensating Rollback Applied
             </div>
           )}
         </div>
       </div>
 
-      {/* Transfer Form */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: 500 }}>
-            Recipient Account
-          </label>
-          <select 
-            id="recipient-account-select"
-            value={recipient} 
-            onChange={(e) => setRecipient(e.target.value)}
-            disabled={stage !== 'IDLE'}
-            style={{
-              width: '100%',
-              padding: '10px 14px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--bg-surface-elevated)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--text-primary)',
-              fontSize: '0.9rem',
-              outline: 'none'
-            }}
-          >
-            <option value="acc_bob">Bob (acc_bob)</option>
-            <option value="acc_alice">Alice (acc_alice)</option>
-            <option value="acc_charlie">Charlie (acc_charlie)</option>
-            <option value="acc_treasury">Corporate Treasury (acc_treasury)</option>
-          </select>
-        </div>
+      {/* Main Payment Form Card */}
+      <div className="ui-card" style={{ padding: '24px 28px', borderRadius: '12px' }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#202124', marginBottom: '16px' }}>
+          Transfer Details
+        </h3>
 
-        <div>
-          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: 500 }}>
-            Amount (USD)
-          </label>
-          <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>$</span>
-            <input 
-              id="transfer-amount-input"
-              type="number"
-              step="0.01"
-              value={amountDollars}
-              onChange={(e) => setAmountDollars(e.target.value)}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', color: '#202124', marginBottom: '6px', fontWeight: 600 }}>
+              Recipient Account
+            </label>
+            <select 
+              id="recipient-account-select"
+              value={recipient} 
+              onChange={(e) => setRecipient(e.target.value)}
               disabled={stage !== 'IDLE'}
               style={{
                 width: '100%',
-                padding: '10px 14px 10px 28px',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--bg-surface-elevated)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-primary)',
+                padding: '11px 14px',
+                borderRadius: '8px',
+                backgroundColor: '#ffffff',
+                border: '1px solid #dadce0',
+                color: '#202124',
                 fontSize: '0.9rem',
-                fontWeight: 600,
-                outline: 'none'
+                outline: 'none',
               }}
-            />
+            >
+              <option value="acc_bob">Bob (Merchant - acc_bob)</option>
+              <option value="acc_alice">Alice (Primary - acc_alice)</option>
+              <option value="acc_charlie">Charlie (Partner - acc_charlie)</option>
+              <option value="acc_treasury">Corporate Treasury (acc_treasury)</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', color: '#202124', marginBottom: '6px', fontWeight: 600 }}>
+              Amount (USD)
+            </label>
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#5f6368', fontWeight: 600 }}>$</span>
+              <input 
+                id="transfer-amount-input"
+                type="number"
+                step="0.01"
+                value={amountDollars}
+                onChange={(e) => setAmountDollars(e.target.value)}
+                disabled={stage !== 'IDLE'}
+                style={{
+                  width: '100%',
+                  padding: '11px 14px 11px 30px',
+                  borderRadius: '8px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #dadce0',
+                  color: '#202124',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  outline: 'none',
+                }}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Preset Amounts */}
-      <div className="flex items-center gap-2">
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Quick Presets:</span>
-        {['25.00', '50.00', '250.00', '1000.00'].map(amt => (
-          <button
-            key={amt}
-            type="button"
+        {/* Preset Amounts */}
+        <div className="flex items-center gap-2" style={{ marginBottom: '20px' }}>
+          <span style={{ fontSize: '0.78rem', color: '#5f6368', fontWeight: 500 }}>Quick Presets:</span>
+          {['25.00', '50.00', '250.00', '1000.00'].map(amt => (
+            <button
+              key={amt}
+              type="button"
+              className="btn-secondary"
+              style={{ padding: '4px 12px', fontSize: '0.76rem' }}
+              onClick={() => handleAmountPreset(amt)}
+              disabled={stage !== 'IDLE'}
+            >
+              ${amt}
+            </button>
+          ))}
+        </div>
+
+        {/* Idempotency Key Ribbon */}
+        <div 
+          style={{ 
+            padding: '12px 16px', 
+            backgroundColor: '#f8f9fa', 
+            borderRadius: '8px', 
+            border: '1px solid #e8eaed',
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            fontSize: '0.78rem',
+            marginBottom: '24px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ShieldCheck size={16} color="#1a73e8" />
+            <span style={{ color: '#5f6368', fontWeight: 500 }}>Idempotency-Key:</span>
+            <code style={{ color: '#1a73e8', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{idempotencyKey}</code>
+            <button
+              onClick={handleCopyKey}
+              style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#80868b', padding: '2px' }}
+              title="Copy Idempotency Key"
+            >
+              {copiedKey ? <Check size={13} color="#1e8e3e" /> : <Copy size={13} />}
+            </button>
+          </div>
+          <button 
+            onClick={generateNewIdempotencyKey}
+            disabled={stage !== 'IDLE'}
             className="btn-secondary"
-            style={{ padding: '3px 10px', fontSize: '0.75rem' }}
-            onClick={() => handleAmountPreset(amt)}
+            style={{ padding: '3px 10px', fontSize: '0.72rem' }}
+            title="Regenerate UUIDv4 Idempotency Key"
+          >
+            Regenerate
+          </button>
+        </div>
+
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', gap: '14px' }}>
+          <button
+            id="submit-transfer-btn"
+            className="btn-primary"
+            style={{ flex: 2, padding: '12px 24px', fontSize: '0.94rem' }}
+            onClick={() => handleInitiateTransfer(false)}
             disabled={stage !== 'IDLE'}
           >
-            ${amt}
+            {stage !== 'IDLE' ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            {stage !== 'IDLE' ? 'Processing Transaction...' : 'Submit Payment'}
           </button>
-        ))}
-      </div>
 
-      {/* Idempotency Key Ribbon */}
-      <div className="glass-card" style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ShieldCheck size={16} color="var(--accent-primary)" />
-          <span style={{ color: 'var(--text-muted)' }}>Idempotency-Key:</span>
-          <code style={{ color: 'var(--accent-secondary)', fontWeight: 600 }}>{idempotencyKey}</code>
-        </div>
-        <button 
-          onClick={generateNewIdempotencyKey}
-          disabled={stage !== 'IDLE'}
-          className="btn-secondary"
-          style={{ padding: '2px 8px', fontSize: '0.7rem' }}
-          title="Regenerate UUIDv4 Idempotency Key"
-        >
-          New Key
-        </button>
-      </div>
-
-      {/* Action Buttons */}
-      <div style={{ display: 'flex', gap: '12px' }}>
-        <button
-          id="submit-transfer-btn"
-          className="btn-primary"
-          style={{ flex: 2 }}
-          onClick={() => handleInitiateTransfer(false)}
-          disabled={stage !== 'IDLE'}
-        >
-          {stage !== 'IDLE' ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-          {stage !== 'IDLE' ? 'Processing Transaction...' : 'Submit Transfer'}
-        </button>
-
-        <button
-          id="simulate-failure-btn"
-          className="btn-danger"
-          style={{ flex: 1, fontSize: '0.8rem' }}
-          onClick={() => handleInitiateTransfer(true)}
-          disabled={stage !== 'IDLE'}
-          title="Simulates downstream failure to demonstrate compensating rollback animation"
-        >
-          <RotateCcw size={14} /> Test Rollback
-        </button>
-
-        {offlineQueue.length > 0 && (
           <button
-            id="sync-offline-queue-btn"
-            className="btn-secondary"
-            onClick={handleSyncOfflineQueue}
-            style={{ fontSize: '0.8rem' }}
+            id="simulate-failure-btn"
+            className="btn-danger"
+            style={{ flex: 1, fontSize: '0.84rem' }}
+            onClick={() => handleInitiateTransfer(true)}
+            disabled={stage !== 'IDLE'}
+            title="Simulates downstream failure to demonstrate compensating rollback animation"
           >
-            Sync ({offlineQueue.length})
+            <RotateCcw size={14} /> Test Rollback
           </button>
-        )}
+
+          {offlineQueue.length > 0 && (
+            <button
+              id="sync-offline-queue-btn"
+              className="btn-secondary"
+              onClick={handleSyncOfflineQueue}
+              style={{ fontSize: '0.84rem' }}
+            >
+              Sync Queue ({offlineQueue.length})
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Real-Time Multi-Stage Progress Stepper */}
-      <div className="glass-card" style={{ padding: '16px' }}>
-        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '14px', display: 'flex', justifyContent: 'space-between' }}>
+      {/* Real-Time Multi-Stage Progress Stepper Card */}
+      <div className="ui-card" style={{ padding: '24px 28px', borderRadius: '12px' }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#202124', marginBottom: '20px', display: 'flex', justifyContent: 'space-between' }}>
           <span>Async Distributed Lifecycle Stepper</span>
-          <span style={{ color: 'var(--accent-primary)' }}>{stage}</span>
+          <span className="badge badge-neutral" style={{ fontSize: '0.7rem' }}>
+            Current State: {stage}
+          </span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', position: 'relative' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', position: 'relative' }}>
           {/* Step 1: Submitted */}
           <div style={{ textAlign: 'center' }}>
             <div style={{
-              width: '28px',
-              height: '28px',
+              width: '32px',
+              height: '32px',
               borderRadius: '50%',
-              margin: '0 auto 6px',
+              margin: '0 auto 8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '0.75rem',
+              fontSize: '0.8rem',
               fontWeight: 700,
-              background: stage !== 'IDLE' ? 'var(--accent-primary)' : 'var(--bg-surface-elevated)',
-              color: '#ffffff',
-              boxShadow: stage === 'SUBMITTED' ? 'var(--shadow-glow)' : 'none'
+              backgroundColor: stage !== 'IDLE' ? '#1a73e8' : '#f1f3f4',
+              color: stage !== 'IDLE' ? '#ffffff' : '#5f6368',
+              boxShadow: stage === 'SUBMITTED' ? '0 0 0 3px rgba(26, 115, 232, 0.25)' : 'none',
+              transition: 'all 0.3s ease',
             }}>
               1
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: stage !== 'IDLE' ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: stage !== 'IDLE' ? '#202124' : '#80868b' }}>
               Submitted
+            </div>
+            <div style={{ fontSize: '0.68rem', color: '#80868b', marginTop: '2px' }}>
+              Optimistic Debit
             </div>
           </div>
 
           {/* Step 2: Ingested & Locked */}
           <div style={{ textAlign: 'center' }}>
             <div style={{
-              width: '28px',
-              height: '28px',
+              width: '32px',
+              height: '32px',
               borderRadius: '50%',
-              margin: '0 auto 6px',
+              margin: '0 auto 8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '0.75rem',
+              fontSize: '0.8rem',
               fontWeight: 700,
-              background: ['INGESTED_LOCKED', 'LEDGER_WRITTEN', 'SETTLED'].includes(stage) ? 'var(--accent-primary)' : 'var(--bg-surface-elevated)',
-              color: '#ffffff',
-              boxShadow: stage === 'INGESTED_LOCKED' ? 'var(--shadow-glow)' : 'none'
+              backgroundColor: ['INGESTED_LOCKED', 'LEDGER_WRITTEN', 'SETTLED'].includes(stage) ? '#1a73e8' : '#f1f3f4',
+              color: ['INGESTED_LOCKED', 'LEDGER_WRITTEN', 'SETTLED'].includes(stage) ? '#ffffff' : '#5f6368',
+              boxShadow: stage === 'INGESTED_LOCKED' ? '0 0 0 3px rgba(26, 115, 232, 0.25)' : 'none',
+              transition: 'all 0.3s ease',
             }}>
               2
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: ['INGESTED_LOCKED', 'LEDGER_WRITTEN', 'SETTLED'].includes(stage) ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: ['INGESTED_LOCKED', 'LEDGER_WRITTEN', 'SETTLED'].includes(stage) ? '#202124' : '#80868b' }}>
               Ingested & Locked
+            </div>
+            <div style={{ fontSize: '0.68rem', color: '#80868b', marginTop: '2px' }}>
+              Bloom + Mutex
             </div>
           </div>
 
           {/* Step 3: Ledger Written */}
           <div style={{ textAlign: 'center' }}>
             <div style={{
-              width: '28px',
-              height: '28px',
+              width: '32px',
+              height: '32px',
               borderRadius: '50%',
-              margin: '0 auto 6px',
+              margin: '0 auto 8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '0.75rem',
+              fontSize: '0.8rem',
               fontWeight: 700,
-              background: ['LEDGER_WRITTEN', 'SETTLED'].includes(stage) ? 'var(--accent-primary)' : 'var(--bg-surface-elevated)',
-              color: '#ffffff',
-              boxShadow: stage === 'LEDGER_WRITTEN' ? 'var(--shadow-glow)' : 'none'
+              backgroundColor: ['LEDGER_WRITTEN', 'SETTLED'].includes(stage) ? '#1a73e8' : '#f1f3f4',
+              color: ['LEDGER_WRITTEN', 'SETTLED'].includes(stage) ? '#ffffff' : '#5f6368',
+              boxShadow: stage === 'LEDGER_WRITTEN' ? '0 0 0 3px rgba(26, 115, 232, 0.25)' : 'none',
+              transition: 'all 0.3s ease',
             }}>
               3
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: ['LEDGER_WRITTEN', 'SETTLED'].includes(stage) ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: ['LEDGER_WRITTEN', 'SETTLED'].includes(stage) ? '#202124' : '#80868b' }}>
               Ledger Written
+            </div>
+            <div style={{ fontSize: '0.68rem', color: '#80868b', marginTop: '2px' }}>
+              Double-Entry ACID
             </div>
           </div>
 
           {/* Step 4: Settled / Rollback */}
           <div style={{ textAlign: 'center' }}>
             <div style={{
-              width: '28px',
-              height: '28px',
+              width: '32px',
+              height: '32px',
               borderRadius: '50%',
-              margin: '0 auto 6px',
+              margin: '0 auto 8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '0.75rem',
+              fontSize: '0.8rem',
               fontWeight: 700,
-              background: stage === 'SETTLED' ? 'var(--accent-success)' : stage === 'REJECTED_ROLLBACK' ? 'var(--accent-danger)' : 'var(--bg-surface-elevated)',
-              color: '#ffffff',
-              boxShadow: stage === 'SETTLED' ? 'var(--shadow-success)' : stage === 'REJECTED_ROLLBACK' ? 'var(--shadow-danger)' : 'none'
+              backgroundColor: stage === 'SETTLED' ? '#1e8e3e' : stage === 'REJECTED_ROLLBACK' ? '#d93025' : '#f1f3f4',
+              color: ['SETTLED', 'REJECTED_ROLLBACK'].includes(stage) ? '#ffffff' : '#5f6368',
+              boxShadow: stage === 'SETTLED' ? '0 0 0 3px rgba(30, 142, 62, 0.25)' : stage === 'REJECTED_ROLLBACK' ? '0 0 0 3px rgba(217, 48, 37, 0.25)' : 'none',
+              transition: 'all 0.3s ease',
             }}>
               {stage === 'SETTLED' ? <CheckCircle2 size={16} /> : stage === 'REJECTED_ROLLBACK' ? <AlertCircle size={16} /> : '4'}
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: stage === 'SETTLED' ? 'var(--accent-success)' : stage === 'REJECTED_ROLLBACK' ? 'var(--accent-danger)' : 'var(--text-muted)' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: stage === 'SETTLED' ? '#1e8e3e' : stage === 'REJECTED_ROLLBACK' ? '#d93025' : '#80868b' }}>
               {stage === 'REJECTED_ROLLBACK' ? 'Rollback' : 'Settled'}
+            </div>
+            <div style={{ fontSize: '0.68rem', color: '#80868b', marginTop: '2px' }}>
+              Kafka Consumed
             </div>
           </div>
         </div>
@@ -502,13 +590,14 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
           <div 
             className="animate-fade-in"
             style={{ 
-              marginTop: '14px', 
-              padding: '8px 12px', 
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '0.76rem',
-              background: stage === 'REJECTED_ROLLBACK' ? 'rgba(244, 63, 94, 0.15)' : 'rgba(99, 102, 241, 0.10)',
-              border: `1px solid ${stage === 'REJECTED_ROLLBACK' ? 'rgba(244, 63, 94, 0.3)' : 'rgba(99, 102, 241, 0.25)'}`,
-              color: stage === 'REJECTED_ROLLBACK' ? '#fda4af' : '#c7d2fe'
+              marginTop: '18px', 
+              padding: '10px 14px', 
+              borderRadius: '8px',
+              fontSize: '0.8rem',
+              backgroundColor: stage === 'REJECTED_ROLLBACK' ? '#fce8e6' : stage === 'SETTLED' ? '#e6f4ea' : '#e8f0fe',
+              border: `1px solid ${stage === 'REJECTED_ROLLBACK' ? '#fad2cf' : stage === 'SETTLED' ? '#ceead6' : '#d2e3fc'}`,
+              color: stage === 'REJECTED_ROLLBACK' ? '#c5221f' : stage === 'SETTLED' ? '#137333' : '#1765cc',
+              fontWeight: 500,
             }}
           >
             {statusMessage}
@@ -518,3 +607,4 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
     </div>
   );
 };
+

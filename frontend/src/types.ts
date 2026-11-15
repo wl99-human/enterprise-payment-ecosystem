@@ -1,3 +1,5 @@
+export type ActiveTab = 'OVERVIEW' | 'CHECKOUT' | 'LEDGER' | 'METRICS' | 'ACCOUNTS';
+
 export type StepperStage = 
   | 'IDLE' 
   | 'SUBMITTED' 

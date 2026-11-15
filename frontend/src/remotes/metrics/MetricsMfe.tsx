@@ -10,7 +10,11 @@ import {
   Wifi, 
   AlertTriangle,
   Play,
-  RotateCw
+  RotateCw,
+  Server,
+  Zap,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { SystemMetrics } from '../../types';
 
@@ -100,97 +104,154 @@ export const MetricsMfe: React.FC<MetricsMfeProps> = ({
   };
 
   return (
-    <div id="metrics-mfe-container" className="glass-panel p-6 flex flex-col gap-6" style={{ padding: '24px' }}>
-      {/* Remote Header */}
-      <div className="flex items-center justify-between border-b pb-4" style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+    <div 
+      id="metrics-mfe-container" 
+      className="flex flex-col gap-6 animate-fade-in" 
+      style={{ maxWidth: '1280px', margin: '0 auto', width: '100%' }}
+    >
+      {/* Remote Header Card */}
+      <div 
+        className="ui-card" 
+        style={{ 
+          padding: '24px 28px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderRadius: '16px',
+        }}
+      >
         <div className="flex items-center gap-3">
-          <div style={{ background: 'rgba(168, 85, 247, 0.15)', padding: '8px', borderRadius: 'var(--radius-md)', color: 'var(--accent-purple)' }}>
-            <Activity size={20} />
+          <div 
+            style={{ 
+              background: '#e8f0fe', 
+              padding: '12px', 
+              borderRadius: '12px', 
+              color: '#1a73e8' 
+            }}
+          >
+            <Activity size={24} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: '700', letterSpacing: '-0.01em' }}>Remote 3: Live System Metrics MFE</h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Kafka Consumer Lag, Latency Gauges & Chaos Controls</p>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#202124', letterSpacing: '-0.01em' }}>
+              System Telemetry & Chaos Engineering
+            </h2>
+            <p style={{ fontSize: '0.8rem', color: '#5f6368' }}>
+              Kafka Consumer Lag, Latency Distribution, LMAX RingBuffer & Fault Injection
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="badge badge-settled flex items-center gap-1">
-            <span className="pulse-dot"></span> Telemetry Active
+          <span className="badge badge-settled flex items-center gap-1.5" style={{ padding: '6px 14px' }}>
+            <span className="pulse-dot"></span> Telemetry Active (1.5s Poll)
           </span>
         </div>
       </div>
 
-      {/* KPI Metric Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+      {/* KPI Metric Cards Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
         {/* Metric 1: Throughput */}
-        <div className="glass-card" style={{ padding: '14px 16px' }}>
-          <div className="flex justify-between items-center">
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Throughput</span>
-            <Gauge size={14} color="var(--accent-primary)" />
+        <div className="ui-card" style={{ padding: '20px' }}>
+          <div className="flex justify-between items-center" style={{ marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.74rem', color: '#5f6368', textTransform: 'uppercase', fontWeight: 600 }}>
+              Throughput
+            </span>
+            <div style={{ padding: '6px', backgroundColor: '#e8f0fe', borderRadius: '8px', color: '#1a73e8' }}>
+              <Gauge size={16} />
+            </div>
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
-            {metrics.currentTps} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-secondary)' }}>TPS</span>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#202124' }}>
+            {metrics.currentTps} <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#5f6368' }}>TPS</span>
           </div>
-          <div style={{ fontSize: '0.68rem', color: 'var(--accent-success)', marginTop: '2px' }}>
-            ↑ Disruptor RingBuffer Active
+          <div style={{ fontSize: '0.75rem', color: '#1e8e3e', marginTop: '4px', fontWeight: 500 }}>
+            ↑ LMAX Disruptor RingBuffer Active
           </div>
         </div>
 
         {/* Metric 2: p95 Latency */}
-        <div className="glass-card" style={{ padding: '14px 16px' }}>
-          <div className="flex justify-between items-center">
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>p95 Latency</span>
-            <Cpu size={14} color="var(--accent-secondary)" />
+        <div className="ui-card" style={{ padding: '20px' }}>
+          <div className="flex justify-between items-center" style={{ marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.74rem', color: '#5f6368', textTransform: 'uppercase', fontWeight: 600 }}>
+              p95 Commit Latency
+            </span>
+            <div style={{ padding: '6px', backgroundColor: chaosLatencyActive ? '#fef7e0' : '#e8f0fe', borderRadius: '8px', color: chaosLatencyActive ? '#b06000' : '#1a73e8' }}>
+              <Cpu size={16} />
+            </div>
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: chaosLatencyActive ? 'var(--accent-warning)' : 'var(--text-primary)', marginTop: '4px' }}>
-            {metrics.p95LatencyMillis} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-secondary)' }}>ms</span>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: chaosLatencyActive ? '#b06000' : '#202124' }}>
+            {metrics.p95LatencyMillis} <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#5f6368' }}>ms</span>
           </div>
-          <div style={{ fontSize: '0.68rem', color: chaosLatencyActive ? 'var(--accent-warning)' : 'var(--accent-success)', marginTop: '2px' }}>
-            {chaosLatencyActive ? '⚠ +500ms Injected Toxic' : 'Sub-80ms SLA Target Met'}
+          <div style={{ fontSize: '0.75rem', color: chaosLatencyActive ? '#b06000' : '#1e8e3e', marginTop: '4px', fontWeight: 500 }}>
+            {chaosLatencyActive ? '⚠ +500ms Injected Toxic Active' : '● Sub-80ms Ingestion SLA Met'}
           </div>
         </div>
 
         {/* Metric 3: Consumer Lag */}
-        <div className="glass-card" style={{ padding: '14px 16px' }}>
-          <div className="flex justify-between items-center">
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Consumer Lag</span>
-            <Layers size={14} color="var(--accent-purple)" />
+        <div className="ui-card" style={{ padding: '20px' }}>
+          <div className="flex justify-between items-center" style={{ marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.74rem', color: '#5f6368', textTransform: 'uppercase', fontWeight: 600 }}>
+              Kafka Consumer Lag
+            </span>
+            <div style={{ padding: '6px', backgroundColor: '#f3e8fd', borderRadius: '8px', color: '#9334e6' }}>
+              <Layers size={16} />
+            </div>
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: metrics.consumerLag > 5 ? 'var(--accent-warning)' : 'var(--text-primary)', marginTop: '4px' }}>
-            {metrics.consumerLag} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-secondary)' }}>msgs</span>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: metrics.consumerLag > 5 ? '#b06000' : '#202124' }}>
+            {metrics.consumerLag} <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#5f6368' }}>msgs</span>
           </div>
-          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.75rem', color: '#5f6368', marginTop: '4px' }}>
             Across 12 Partitioned Workers
           </div>
         </div>
 
-        {/* Metric 4: Total Settled */}
-        <div className="glass-card" style={{ padding: '14px 16px' }}>
-          <div className="flex justify-between items-center">
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Processed Total</span>
-            <Flame size={14} color="var(--accent-danger)" />
+        {/* Metric 4: Processed Total */}
+        <div className="ui-card" style={{ padding: '20px' }}>
+          <div className="flex justify-between items-center" style={{ marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.74rem', color: '#5f6368', textTransform: 'uppercase', fontWeight: 600 }}>
+              Processed Events Total
+            </span>
+            <div style={{ padding: '6px', backgroundColor: '#fce8e6', borderRadius: '8px', color: '#d93025' }}>
+              <Flame size={16} />
+            </div>
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#202124' }}>
             {metrics.totalTransactionsProcessed}
           </div>
-          <div style={{ fontSize: '0.68rem', color: 'var(--accent-success)', marginTop: '2px' }}>
-            Zero Double-Charge Invariant
+          <div style={{ fontSize: '0.75rem', color: '#1e8e3e', marginTop: '4px', fontWeight: 500 }}>
+            ● Zero Double-Charge Guarantee
           </div>
         </div>
       </div>
 
-      {/* Kafka 12-Partition Distribution Visualizer */}
-      <div className="glass-card" style={{ padding: '16px' }}>
-        <div className="flex justify-between items-center mb-3">
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-            Apache Kafka Partition Balancing (Topic: <code style={{ color: 'var(--accent-secondary)' }}>payment.init</code> [12 Partitions])
-          </span>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            Key: <code style={{ color: 'var(--text-primary)' }}>sender_account_id</code>
+      {/* Kafka 12-Partition Distribution Visualizer Card */}
+      <div className="ui-card" style={{ padding: '24px 28px', borderRadius: '12px' }}>
+        <div className="flex justify-between items-center" style={{ marginBottom: '16px' }}>
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#202124' }}>
+              Kafka Partition Load Balancer
+            </h3>
+            <p style={{ fontSize: '0.76rem', color: '#5f6368' }}>
+              Topic: <code style={{ color: '#1a73e8', fontWeight: 600 }}>payment.init</code> (12 Partitions) • Keyed by <code style={{ color: '#202124' }}>sender_account_id</code>
+            </p>
+          </div>
+          <span className="badge badge-settled" style={{ fontSize: '0.7rem' }}>
+            Partitions Balanced
           </span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '6px', alignItems: 'end', height: '60px', padding: '0 4px' }}>
+        <div 
+          style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(12, 1fr)', 
+            gap: '10px', 
+            alignItems: 'end', 
+            height: '110px', 
+            padding: '16px',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '8px',
+            border: '1px solid #e8eaed',
+          }}
+        >
           {Array.from({ length: 12 }).map((_, idx) => {
             const count = metrics.partitionDistribution[idx] || (10 + ((idx * 3) % 15));
             const heightPct = Math.min(100, Math.max(25, (count / 30) * 100));
@@ -200,13 +261,15 @@ export const MetricsMfe: React.FC<MetricsMfeProps> = ({
                   style={{
                     width: '100%',
                     height: `${heightPct}%`,
-                    background: 'linear-gradient(180deg, var(--accent-primary) 0%, rgba(99, 102, 241, 0.2) 100%)',
-                    borderRadius: '3px',
-                    transition: 'height 0.4s ease'
+                    backgroundColor: '#1a73e8',
+                    borderRadius: '4px',
+                    transition: 'height 0.4s ease',
                   }}
                   title={`Partition ${idx}: ${count} messages routed`}
                 />
-                <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: '4px' }}>p{idx}</span>
+                <span style={{ fontSize: '0.7rem', color: '#5f6368', marginTop: '6px', fontWeight: 600 }}>
+                  p{idx}
+                </span>
               </div>
             );
           })}
@@ -214,24 +277,37 @@ export const MetricsMfe: React.FC<MetricsMfeProps> = ({
       </div>
 
       {/* Chaos Engineering & Fault Injection Panel */}
-      <div className="glass-card" style={{ padding: '16px', background: 'rgba(30, 41, 59, 0.8)', border: '1px solid var(--border-active)' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <Sliders size={16} color="var(--accent-warning)" />
-          <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-            Live Chaos Engineering Controls (Toxiproxy / Downstream Fault Injection)
-          </h3>
+      <div 
+        className="ui-card" 
+        style={{ 
+          padding: '24px 28px', 
+          borderRadius: '12px',
+          border: '1px solid #feefc3',
+          backgroundColor: '#fffdf9',
+        }}
+      >
+        <div className="flex items-center gap-2" style={{ marginBottom: '14px' }}>
+          <Sliders size={20} color="#b06000" />
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#202124' }}>
+              Live Chaos Engineering Controls (Toxiproxy Fault Injection)
+            </h3>
+            <p style={{ fontSize: '0.76rem', color: '#5f6368' }}>
+              Inject latency, simulated outages, and burst traffic to test system resilience
+            </p>
+          </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
           {/* Chaos Trigger 1: +500ms Latency */}
           <button
             id="chaos-latency-btn"
             onClick={toggleChaosLatency}
             className={chaosLatencyActive ? 'btn-danger' : 'btn-secondary'}
-            style={{ width: '100%', fontSize: '0.78rem', justifyContent: 'center' }}
+            style={{ width: '100%', fontSize: '0.84rem', padding: '12px 18px', justifyContent: 'center' }}
           >
-            <AlertTriangle size={14} />
-            {chaosLatencyActive ? 'Disable +500ms Lag' : 'Inject +500ms Lag (Toxi)'}
+            <AlertTriangle size={16} />
+            <span>{chaosLatencyActive ? 'Disable +500ms Lag' : 'Inject +500ms Lag (Toxiproxy)'}</span>
           </button>
 
           {/* Chaos Trigger 2: Downstream 503 Notification Outage */}
@@ -239,11 +315,11 @@ export const MetricsMfe: React.FC<MetricsMfeProps> = ({
             id="chaos-downstream-btn"
             onClick={() => onToggleDownstreamOutage(!isOutageSimulated)}
             className={isOutageSimulated ? 'btn-danger' : 'btn-secondary'}
-            style={{ width: '100%', fontSize: '0.78rem', justifyContent: 'center' }}
+            style={{ width: '100%', fontSize: '0.84rem', padding: '12px 18px', justifyContent: 'center' }}
             title="Forces notification service into retry backoff and routes to Dead Letter Queue (payment.dlq)"
           >
-            <Skull size={14} />
-            {isOutageSimulated ? 'Clear Downstream Outage' : 'Inject 503 Outage (DLQ)'}
+            <Skull size={16} />
+            <span>{isOutageSimulated ? 'Clear Downstream Outage' : 'Inject 503 Outage (DLQ)'}</span>
           </button>
 
           {/* Chaos Trigger 3: Synthetic Load Injection */}
@@ -251,22 +327,38 @@ export const MetricsMfe: React.FC<MetricsMfeProps> = ({
             id="chaos-burst-btn"
             onClick={() => onInjectSyntheticLoad(10)}
             className="btn-primary"
-            style={{ width: '100%', fontSize: '0.78rem', justifyContent: 'center' }}
+            style={{ width: '100%', fontSize: '0.84rem', padding: '12px 18px', justifyContent: 'center' }}
           >
-            <Play size={14} />
-            Burst 10 Tx Concurrency
+            <Play size={16} />
+            <span>Burst 10 Tx Concurrency</span>
           </button>
         </div>
 
         {isOutageSimulated && (
           <div 
-            className="badge badge-dlq animate-fade-in"
-            style={{ marginTop: '12px', width: '100%', padding: '6px 12px', justifyContent: 'center', fontSize: '0.75rem' }}
+            className="animate-fade-in"
+            style={{ 
+              marginTop: '16px', 
+              padding: '10px 16px', 
+              borderRadius: '8px',
+              backgroundColor: '#fce8e6',
+              border: '1px solid #fad2cf',
+              color: '#c5221f',
+              fontSize: '0.78rem',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
           >
-            Downstream 503 Outage Active: Circuit breaker trips & events routed to topic: <code>payment.dlq</code>
+            <AlertCircle size={16} />
+            <span>
+              Downstream 503 Outage Active: Circuit breaker tripped. Notifications routed to topic <code>payment.dlq</code> with exponential backoff & jitter.
+            </span>
           </div>
         )}
       </div>
     </div>
   );
 };
+
