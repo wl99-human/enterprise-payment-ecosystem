@@ -139,18 +139,19 @@ export const LedgerActivityMfe: React.FC<LedgerActivityMfeProps> = ({
   return (
     <div 
       id="ledger-mfe-container" 
-      className="flex flex-col gap-6 animate-fade-in" 
-      style={{ maxWidth: '1280px', margin: '0 auto', width: '100%' }}
+      className="flex flex-col gap-4 animate-fade-in" 
+      style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', height: '100%', minHeight: 0 }}
     >
       {/* Remote Header Card */}
       <div 
         className="ui-card" 
         style={{ 
-          padding: '24px 28px',
+          padding: '16px 24px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          borderRadius: '16px',
+          borderRadius: '12px',
+          flexShrink: 0,
         }}
       >
         <div className="flex items-center gap-3">
@@ -201,34 +202,35 @@ export const LedgerActivityMfe: React.FC<LedgerActivityMfeProps> = ({
       <div 
         className="ui-card" 
         style={{ 
-          padding: '14px 20px', 
+          padding: '10px 18px', 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
           backgroundColor: '#f8fafd',
           border: '1px solid #d2e3fc',
+          flexShrink: 0,
         }}
       >
         <div className="flex items-center gap-3">
-          <div style={{ background: '#e6f4ea', padding: '6px', borderRadius: '8px', color: '#1e8e3e' }}>
-            <CheckCircle2 size={18} />
+          <div style={{ background: '#e6f4ea', padding: '5px', borderRadius: '6px', color: '#1e8e3e' }}>
+            <CheckCircle2 size={16} />
           </div>
           <div>
-            <div style={{ fontSize: '0.84rem', fontWeight: 600, color: '#202124' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#202124' }}>
               Balance Conservation Guarantee: <span style={{ color: '#1e8e3e' }}>100% Invariant Compliant</span>
             </div>
-            <div style={{ fontSize: '0.74rem', color: '#5f6368' }}>
-              Total journal debits strictly match total journal credits across all transactions ($\sum Debits = \sum Credits$).
+            <div style={{ fontSize: '0.72rem', color: '#5f6368' }}>
+              Total journal debits strictly match total journal credits across all transactions (&Sigma; Debits = &Sigma; Credits).
             </div>
           </div>
         </div>
-        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1a73e8' }}>
+        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1a73e8' }}>
           {transactions.length} Total Journal Entries
         </div>
       </div>
 
       {/* Search and Filters Bar */}
-      <div className="ui-card" style={{ padding: '16px 20px', display: 'flex', gap: '14px', alignItems: 'center' }}>
+      <div className="ui-card" style={{ padding: '12px 18px', display: 'flex', gap: '14px', alignItems: 'center', flexShrink: 0 }}>
         <div style={{ position: 'relative', flex: 1 }}>
           <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#5f6368' }} />
           <input
@@ -239,12 +241,12 @@ export const LedgerActivityMfe: React.FC<LedgerActivityMfeProps> = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
               width: '100%',
-              padding: '10px 14px 10px 38px',
+              padding: '8px 14px 8px 38px',
               borderRadius: '24px',
               backgroundColor: '#f1f3f4',
               border: '1px solid transparent',
               color: '#202124',
-              fontSize: '0.86rem',
+              fontSize: '0.84rem',
               outline: 'none',
             }}
           />
@@ -273,8 +275,19 @@ export const LedgerActivityMfe: React.FC<LedgerActivityMfeProps> = ({
         </div>
       </div>
 
-      {/* Transactions Table View */}
-      <div className="ui-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '12px' }}>
+      {/* Transactions Table View (Scrollable Section) */}
+      <div 
+        className="ui-card" 
+        style={{ 
+          padding: '0', 
+          overflow: 'hidden', 
+          borderRadius: '12px',
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         {filteredList.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px 16px', color: '#80868b' }}>
             <BookOpen size={36} style={{ margin: '0 auto 10px', color: '#dadce0' }} />
@@ -284,7 +297,7 @@ export const LedgerActivityMfe: React.FC<LedgerActivityMfeProps> = ({
             </p>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', overflowY: 'auto', flex: 1, minHeight: 0 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.84rem' }}>
               <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
                 <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '1px solid #dadce0', color: '#5f6368', fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>

@@ -63,17 +63,18 @@ export const AccountsVaultView: React.FC<AccountsVaultViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-fade-in" style={{ maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
+    <div className="flex flex-col gap-4 animate-fade-in" style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', height: '100%', minHeight: 0 }}>
       {/* Header & Vault Summary Card */}
       <div
         className="ui-card"
         style={{
-          padding: '24px 28px',
+          padding: '18px 24px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           background: 'linear-gradient(135deg, #ffffff 0%, #f8fafd 100%)',
-          borderRadius: '16px',
+          borderRadius: '12px',
+          flexShrink: 0,
         }}
       >
         <div>
@@ -107,8 +108,8 @@ export const AccountsVaultView: React.FC<AccountsVaultViewProps> = ({
         </button>
       </div>
 
-      {/* Account Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+      {/* Account Cards Grid (Scrollable Section) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px' }}>
         {Object.values(accounts).map((acc) => {
           const isActive = acc.id === activeAccountId;
           const percentage = ((acc.balanceMinorUnits / totalVaultBalance) * 100).toFixed(1);
@@ -242,7 +243,7 @@ export const AccountsVaultView: React.FC<AccountsVaultViewProps> = ({
       </div>
 
       {/* Double-Entry Invariant Mathematical Proof Card */}
-      <div className="ui-card" style={{ padding: '24px 28px' }}>
+      <div className="ui-card" style={{ padding: '16px 20px', flexShrink: 0 }}>
         <div className="flex items-center gap-3" style={{ marginBottom: '12px' }}>
           <div style={{ padding: '8px', backgroundColor: '#e6f4ea', borderRadius: '8px', color: '#1e8e3e' }}>
             <ShieldCheck size={22} />

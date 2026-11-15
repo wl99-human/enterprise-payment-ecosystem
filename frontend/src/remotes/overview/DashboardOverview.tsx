@@ -44,17 +44,18 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   const recentTxs = settledTransactions.slice(0, 6);
 
   return (
-    <div className="flex flex-col gap-6 animate-fade-in" style={{ maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
+    <div className="flex flex-col gap-4 animate-fade-in" style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', height: '100%', minHeight: 0 }}>
       {/* Welcome & Primary Balance Hero Card */}
       <div
         className="ui-card"
         style={{
-          padding: '24px 28px',
+          padding: '18px 24px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           background: 'linear-gradient(135deg, #ffffff 0%, #f8fafd 100%)',
-          borderRadius: '16px',
+          borderRadius: '12px',
+          flexShrink: 0,
         }}
       >
         <div>
@@ -100,7 +101,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       </div>
 
       {/* KPI Metric Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', flexShrink: 0 }}>
         {/* Card 1: Total Ecosystem Liquidity */}
         <div className="ui-card" style={{ padding: '20px' }}>
           <div className="flex items-center justify-between" style={{ marginBottom: '10px' }}>
@@ -175,9 +176,9 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       </div>
 
       {/* Main 2-Column Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '20px', flex: 1, minHeight: 0 }}>
         {/* Left Column: Recent Ledger Activity */}
-        <div className="ui-card" style={{ padding: '20px 24px' }}>
+        <div className="ui-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
           <div className="flex items-center justify-between" style={{ marginBottom: '16px' }}>
             <div>
               <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: '#202124' }}>
@@ -209,7 +210,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '230px', overflowY: 'auto', paddingRight: '4px' }}>
               {recentTxs.map((tx) => {
                 const isDebit = tx.senderAccountId === currentAccount.id;
                 return (

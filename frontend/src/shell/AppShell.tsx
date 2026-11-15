@@ -168,13 +168,16 @@ export const AppShell: React.FC = () => {
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
 
-        {/* Right Side: Scrollable Page Viewport + Anchored Bottom Status Footer */}
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+        {/* Right Side: Page Viewport + Anchored Bottom Status Footer */}
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', minHeight: 0 }}>
           <main
             style={{
               flex: 1,
-              padding: '28px 36px',
-              overflowY: 'auto',
+              padding: '20px 28px',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: 0,
             }}
           >
             {/* Page 1: Overview */}

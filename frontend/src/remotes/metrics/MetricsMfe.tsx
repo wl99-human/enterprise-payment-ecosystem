@@ -106,18 +106,19 @@ export const MetricsMfe: React.FC<MetricsMfeProps> = ({
   return (
     <div 
       id="metrics-mfe-container" 
-      className="flex flex-col gap-6 animate-fade-in" 
-      style={{ maxWidth: '1280px', margin: '0 auto', width: '100%' }}
+      className="flex flex-col gap-4 animate-fade-in" 
+      style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', height: '100%', minHeight: 0 }}
     >
       {/* Remote Header Card */}
       <div 
         className="ui-card" 
         style={{ 
-          padding: '24px 28px',
+          padding: '16px 24px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          borderRadius: '16px',
+          borderRadius: '12px',
+          flexShrink: 0,
         }}
       >
         <div className="flex items-center gap-3">
@@ -148,8 +149,10 @@ export const MetricsMfe: React.FC<MetricsMfeProps> = ({
         </div>
       </div>
 
-      {/* KPI Metric Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+      {/* Metrics Scrollable Panel */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px' }}>
+        {/* KPI Metric Cards Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', flexShrink: 0 }}>
         {/* Metric 1: Throughput */}
         <div className="ui-card" style={{ padding: '20px' }}>
           <div className="flex justify-between items-center" style={{ marginBottom: '8px' }}>
@@ -357,6 +360,7 @@ export const MetricsMfe: React.FC<MetricsMfeProps> = ({
             </span>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
