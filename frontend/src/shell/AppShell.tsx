@@ -146,7 +146,7 @@ export const AppShell: React.FC = () => {
   const currentAccount = accounts[activeAccountId] || accounts['acc_alice'];
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-canvas)' }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-canvas)', overflow: 'hidden' }}>
       {/* Top Navigation Bar */}
       <TopNavBar
         accounts={accounts}
@@ -159,7 +159,7 @@ export const AppShell: React.FC = () => {
       />
 
       {/* Main Layout: Side Navigation Rail + Active Page View */}
-      <div style={{ display: 'flex', flex: 1 }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <SideNavRail
           activeTab={activeTab}
           onSelectTab={handleSelectTab}
@@ -173,99 +173,96 @@ export const AppShell: React.FC = () => {
             flex: 1,
             padding: '28px 36px',
             overflowY: 'auto',
-            maxHeight: 'calc(100vh - 64px)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
           }}
         >
-          <div>
-            {/* Page 1: Overview */}
-            {activeTab === 'OVERVIEW' && (
-              <ErrorBoundary fallbackTitle="Overview Dashboard Crashed">
-                <DashboardOverview
-                  currentAccount={currentAccount}
-                  accounts={accounts}
-                  settledTransactions={globalSettledTransactions}
-                  onNavigateTab={handleSelectTab}
-                  currency={currency}
-                />
-              </ErrorBoundary>
-            )}
+          {/* Page 1: Overview */}
+          {activeTab === 'OVERVIEW' && (
+            <ErrorBoundary fallbackTitle="Overview Dashboard Crashed">
+              <DashboardOverview
+                currentAccount={currentAccount}
+                accounts={accounts}
+                settledTransactions={globalSettledTransactions}
+                onNavigateTab={handleSelectTab}
+                currency={currency}
+              />
+            </ErrorBoundary>
+          )}
 
-            {/* Page 2: Send Money / Checkout */}
-            {activeTab === 'CHECKOUT' && (
-              <ErrorBoundary fallbackTitle="Checkout Micro-Frontend Crashed">
-                <CheckoutMfe
-                  currentAccount={currentAccount}
-                  onOptimisticBalanceMutation={handleOptimisticBalanceMutation}
-                  onRollbackBalanceMutation={handleRollbackBalanceMutation}
-                  onCommitSettlement={handleCommitSettlement}
-                />
-              </ErrorBoundary>
-            )}
+          {/* Page 2: Send Money / Checkout */}
+          {activeTab === 'CHECKOUT' && (
+            <ErrorBoundary fallbackTitle="Checkout Micro-Frontend Crashed">
+              <CheckoutMfe
+                currentAccount={currentAccount}
+                onOptimisticBalanceMutation={handleOptimisticBalanceMutation}
+                onRollbackBalanceMutation={handleRollbackBalanceMutation}
+                onCommitSettlement={handleCommitSettlement}
+              />
+            </ErrorBoundary>
+          )}
 
-            {/* Page 3: Ledger & Audit Activity */}
-            {activeTab === 'LEDGER' && (
-              <ErrorBoundary fallbackTitle="Ledger Activity Micro-Frontend Crashed">
-                <LedgerActivityMfe
-                  currentAccount={currentAccount}
-                  settledTransactions={globalSettledTransactions}
-                />
-              </ErrorBoundary>
-            )}
+          {/* Page 3: Ledger & Audit Activity */}
+          {activeTab === 'LEDGER' && (
+            <ErrorBoundary fallbackTitle="Ledger Activity Micro-Frontend Crashed">
+              <LedgerActivityMfe
+                currentAccount={currentAccount}
+                settledTransactions={globalSettledTransactions}
+              />
+            </ErrorBoundary>
+          )}
 
-            {/* Page 4: System Metrics & Chaos */}
-            {activeTab === 'METRICS' && (
-              <ErrorBoundary fallbackTitle="System Metrics Micro-Frontend Crashed">
-                <MetricsMfe
-                  onInjectSyntheticLoad={handleInjectSyntheticLoad}
-                  onToggleDownstreamOutage={setIsOutageSimulated}
-                  isOutageSimulated={isOutageSimulated}
-                />
-              </ErrorBoundary>
-            )}
+          {/* Page 4: System Metrics & Chaos */}
+          {activeTab === 'METRICS' && (
+            <ErrorBoundary fallbackTitle="System Metrics Micro-Frontend Crashed">
+              <MetricsMfe
+                onInjectSyntheticLoad={handleInjectSyntheticLoad}
+                onToggleDownstreamOutage={setIsOutageSimulated}
+                isOutageSimulated={isOutageSimulated}
+              />
+            </ErrorBoundary>
+          )}
 
-            {/* Page 5: Accounts Vault */}
-            {activeTab === 'ACCOUNTS' && (
-              <ErrorBoundary fallbackTitle="Accounts Vault Crashed">
-                <AccountsVaultView
-                  accounts={accounts}
-                  activeAccountId={activeAccountId}
-                  onSelectAccount={setActiveAccountId}
-                  onNavigateTab={handleSelectTab}
-                  currency={currency}
-                />
-              </ErrorBoundary>
-            )}
-          </div>
-
-          {/* Clean Minimalist Footer */}
-          <footer
-            style={{
-              marginTop: '48px',
-              paddingTop: '20px',
-              borderTop: '1px solid var(--border-divider)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              fontSize: '0.75rem',
-              color: 'var(--text-muted)',
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <span>AegisPay Enterprise Distributed Architecture</span>
-              <span>•</span>
-              <span>ACID Double-Entry Conservation (&Sigma; Debits = &Sigma; Credits)</span>
-              <span>•</span>
-              <span>LMAX Disruptor RingBuffer</span>
-            </div>
-            <div>
-              Webpack 5 Module Federation • Clean Architecture
-            </div>
-          </footer>
+          {/* Page 5: Accounts Vault */}
+          {activeTab === 'ACCOUNTS' && (
+            <ErrorBoundary fallbackTitle="Accounts Vault Crashed">
+              <AccountsVaultView
+                accounts={accounts}
+                activeAccountId={activeAccountId}
+                onSelectAccount={setActiveAccountId}
+                onNavigateTab={handleSelectTab}
+                currency={currency}
+              />
+            </ErrorBoundary>
+          )}
         </main>
       </div>
+
+      {/* Fixed Bottom Footer */}
+      <footer
+        style={{
+          height: '42px',
+          flexShrink: 0,
+          backgroundColor: '#ffffff',
+          borderTop: '1px solid var(--border-subtle)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '0 24px',
+          fontSize: '0.75rem',
+          color: 'var(--text-muted)',
+          zIndex: 30,
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <span style={{ fontWeight: 600, color: '#202124' }}>AegisPay Enterprise</span>
+          <span>•</span>
+          <span>ACID Double-Entry Conservation (&Sigma; Debits = &Sigma; Credits)</span>
+          <span>•</span>
+          <span>LMAX Disruptor RingBuffer</span>
+        </div>
+        <div>
+          Webpack 5 Module Federation • Clean Architecture
+        </div>
+      </footer>
     </div>
   );
 };

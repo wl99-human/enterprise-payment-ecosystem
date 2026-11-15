@@ -71,9 +71,7 @@ export const SideNavRail: React.FC<SideNavRailProps> = ({
         justifyContent: 'space-between',
         padding: '16px 8px',
         transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        height: 'calc(100vh - 64px)',
-        position: 'sticky',
-        top: '64px',
+        height: '100%',
         flexShrink: 0,
       }}
     >
