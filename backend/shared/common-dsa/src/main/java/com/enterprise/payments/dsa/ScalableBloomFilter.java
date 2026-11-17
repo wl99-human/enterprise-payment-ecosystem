@@ -96,7 +96,7 @@ public class ScalableBloomFilter {
      * Generates k distinct hash values using two hash calls (hash1 and hash2):
      * g_i(x) = (hash1(x) + i * hash2(x)) mod m
      */
-    static int[] computeHashes(byte[] data, int k, int m) {
+    public static int[] computeHashes(byte[] data, int k, int m) {
         int[] result = new int[k];
         int hash1 = murmur3_32(data, 0, data.length, 0x9747b28c);
         int hash2 = murmur3_32(data, 0, data.length, 0x1b873593);
@@ -107,6 +107,11 @@ public class ScalableBloomFilter {
             result[i] = (int) (combined % m);
         }
         return result;
+    }
+
+    public static int[] computeVisualHashIndices(String key, int k, int m) {
+        if (key == null) return new int[0];
+        return computeHashes(key.getBytes(StandardCharsets.UTF_8), k, m);
     }
 
     /**

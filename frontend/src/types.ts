@@ -1,4 +1,4 @@
-export type ActiveTab = 'OVERVIEW' | 'CHECKOUT' | 'LEDGER' | 'METRICS' | 'ACCOUNTS' | 'DLQ' | 'FX_DAG';
+export type ActiveTab = 'OVERVIEW' | 'CHECKOUT' | 'LEDGER' | 'METRICS' | 'ACCOUNTS' | 'DLQ' | 'FX_DAG' | 'PLAYGROUND' | 'OUTBOX' | 'AUDIT';
 
 export type StepperStage = 
   | 'IDLE' 
@@ -89,4 +89,30 @@ export interface FxSimulationResult {
   directFeePercentage: number;
   savingsBps: number;
   savingsMinorUnits: number;
+}
+
+export interface OutboxEventRecord {
+  id: string;
+  aggregateType: string;
+  aggregateId: string;
+  eventType: string;
+  payload: string;
+  status: 'PENDING' | 'PUBLISHED' | 'FAILED';
+  retryCount: number;
+  createdAt: string;
+  updatedAt: string;
+  relayLatencyMs?: number;
+}
+
+export interface AuditChainedEntry {
+  index: number;
+  transactionId: string;
+  idempotencyKey: string;
+  senderAccountId: string;
+  receiverAccountId: string;
+  amountMinorUnits: number;
+  currency: string;
+  settledAt: string;
+  previousHash: string;
+  entryHash: string;
 }

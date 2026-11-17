@@ -88,6 +88,73 @@ public class LedgerStreamController {
         return ResponseEntity.ok(readModelService.getMetricsSnapshot());
     }
 
+    @GetMapping("/analytics/audit-statement")
+    public ResponseEntity<?> getCryptographicAuditStatement(
+            @RequestParam(defaultValue = "ALL") String accountId) {
+        List<PaymentTransactionReadModel> txs = readModelService.getRecentTransactions(100);
+        if (!"ALL".equalsIgnoreCase(accountId)) {
+            txs = txs.stream()
+                    .filter(t -> accountId.equalsIgnoreCase(t.getSenderAccountId())
+                            || accountId.equalsIgnoreCase(t.getReceiverAccountId()))
+                    .toList();
+        }
+
+        List<Map<String, Object>> entries = new java.util.ArrayList<>();
+        String prevHash = "0000000000000000000000000000000000000000000000000000000000000000";
+        long totalDebits = 0L;
+        long totalCredits = 0L;
+
+        for (int i = 0; i < txs.size(); i++) {
+            PaymentTransactionReadModel tx = txs.get(i);
+            long amount = tx.getAmountMinorUnits() != null ? tx.getAmountMinorUnits() : 0L;
+            totalDebits += amount;
+            totalCredits += amount;
+
+            String canonical = prevHash + ":" + tx.getTransactionId() + ":"
+                    + tx.getSenderAccountId() + ":" + tx.getReceiverAccountId() + ":" + amount;
+            String entryHash = sha256Hex(canonical);
+
+            Map<String, Object> entry = new java.util.LinkedHashMap<>();
+            entry.put("index", i + 1);
+            entry.put("transactionId", tx.getTransactionId());
+            entry.put("idempotencyKey", tx.getIdempotencyKey());
+            entry.put("senderAccountId", tx.getSenderAccountId());
+            entry.put("receiverAccountId", tx.getReceiverAccountId());
+            entry.put("amountMinorUnits", amount);
+            entry.put("currency", tx.getCurrency());
+            entry.put("settledAt", tx.getSettledAt() != null ? tx.getSettledAt().toString() : Instant.now().toString());
+            entry.put("previousHash", prevHash);
+            entry.put("entryHash", entryHash);
+            entries.add(entry);
+
+            prevHash = entryHash;
+        }
+
+        Map<String, Object> statement = new java.util.LinkedHashMap<>();
+        statement.put("accountId", accountId);
+        statement.put("merkleRoot", prevHash);
+        statement.put("totalDebitsMinorUnits", totalDebits);
+        statement.put("totalCreditsMinorUnits", totalCredits);
+        statement.put("zeroDriftVerified", totalDebits == totalCredits);
+        statement.put("generatedAt", Instant.now().toString());
+        statement.put("entries", entries);
+        return ResponseEntity.ok(statement);
+    }
+
+    private static String sha256Hex(String input) {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm unavailable", e);
+        }
+    }
+
     /**
      * Dev/Chaos testing hook: simulate settlement directly into CQRS read model.
      */

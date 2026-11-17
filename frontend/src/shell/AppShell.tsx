@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Account, SettledTransaction, ActiveTab } from '../types';
+import { Account, SettledTransaction, ActiveTab, PaymentDlqItem } from '../types';
 import { TopNavBar } from './TopNavBar';
 import { SideNavRail } from './SideNavRail';
 import { DashboardOverview } from '../remotes/overview/DashboardOverview';
@@ -9,6 +9,9 @@ import { MetricsMfe } from '../remotes/metrics/MetricsMfe';
 import { AccountsVaultView } from '../remotes/accounts/AccountsVaultView';
 import { DlqWorkbenchView } from '../remotes/dlq/DlqWorkbenchView';
 import { FxDagVisualizerView } from '../remotes/fx/FxDagVisualizerView';
+import { DsaPlaygroundView } from '../remotes/playground/DsaPlaygroundView';
+import { OutboxCdcVisualizer } from '../remotes/outbox/OutboxCdcVisualizer';
+import { AuditStatementGeneratorView } from '../remotes/audit/AuditStatementGeneratorView';
 import { ErrorBoundary } from './ErrorBoundary';
 
 const INITIAL_ACCOUNTS: Record<string, Account> = {
@@ -58,7 +61,7 @@ export const AppShell: React.FC = () => {
         setActiveTab('DLQ');
       } else {
         const hash = rawHash.toUpperCase();
-        if (['OVERVIEW', 'CHECKOUT', 'LEDGER', 'METRICS', 'ACCOUNTS'].includes(hash)) {
+        if (['OVERVIEW', 'CHECKOUT', 'LEDGER', 'METRICS', 'ACCOUNTS', 'PLAYGROUND', 'OUTBOX', 'AUDIT'].includes(hash)) {
           setActiveTab(hash as ActiveTab);
         }
       }
@@ -144,6 +147,26 @@ export const AppShell: React.FC = () => {
     };
 
     setGlobalSettledTransactions(prev => [newTx, ...prev].slice(0, 100));
+
+    if (isOutageSimulated) {
+      const dlqItem: PaymentDlqItem = {
+        transactionId: newTx.transactionId,
+        idempotencyKey: newTx.idempotencyKey,
+        originalTopic: 'payment.settled',
+        failureReason: '503 Service Unavailable: Simulated downstream gateway outage routed event to payment.dlq',
+        retryCount: 3,
+        stackTraceSnippet: 'CircuitBreakerOpenException: Exhausted 3 exponential backoff attempts',
+        payload: newTx,
+        failedAt: new Date().toISOString()
+      };
+      try {
+        const saved = localStorage.getItem('aegis_dlq_events');
+        const existing: PaymentDlqItem[] = saved ? JSON.parse(saved) : [];
+        localStorage.setItem('aegis_dlq_events', JSON.stringify([dlqItem, ...existing].slice(0, 100)));
+      } catch (e) {
+        console.warn('Failed to persist simulated DLQ item', e);
+      }
+    }
   };
 
   // Synthetic load injector
@@ -266,6 +289,30 @@ export const AppShell: React.FC = () => {
                 <DlqWorkbenchView
                   isOutageSimulated={isOutageSimulated}
                   onToggleOutage={setIsOutageSimulated}
+                />
+              </ErrorBoundary>
+            )}
+
+            {/* Page 8: Transactional Outbox CDC Relay Visualizer */}
+            {activeTab === 'OUTBOX' && (
+              <ErrorBoundary fallbackTitle="Outbox CDC Relay Crashed">
+                <OutboxCdcVisualizer />
+              </ErrorBoundary>
+            )}
+
+            {/* Page 9: Bloom Filter & Rate Limiter Playground */}
+            {activeTab === 'PLAYGROUND' && (
+              <ErrorBoundary fallbackTitle="DSA Playground Crashed">
+                <DsaPlaygroundView />
+              </ErrorBoundary>
+            )}
+
+            {/* Page 10: Cryptographic Double-Entry Audit Statement Generator */}
+            {activeTab === 'AUDIT' && (
+              <ErrorBoundary fallbackTitle="Crypto Audit Crashed">
+                <AuditStatementGeneratorView
+                  accounts={accounts}
+                  settledTransactions={globalSettledTransactions}
                 />
               </ErrorBoundary>
             )}

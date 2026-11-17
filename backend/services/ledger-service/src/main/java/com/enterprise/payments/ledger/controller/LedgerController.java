@@ -4,8 +4,11 @@ import com.enterprise.payments.events.PaymentInitEvent;
 import com.enterprise.payments.events.PaymentSettledEvent;
 import com.enterprise.payments.ledger.domain.Account;
 import com.enterprise.payments.ledger.domain.JournalEntry;
+import com.enterprise.payments.ledger.domain.OutboxEvent;
+import com.enterprise.payments.ledger.domain.OutboxStatus;
 import com.enterprise.payments.ledger.repository.AccountRepository;
 import com.enterprise.payments.ledger.repository.JournalEntryRepository;
+import com.enterprise.payments.ledger.repository.OutboxEventRepository;
 import com.enterprise.payments.ledger.service.LedgerEngineService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,14 +25,17 @@ public class LedgerController {
 
     private final AccountRepository accountRepository;
     private final JournalEntryRepository journalEntryRepository;
+    private final OutboxEventRepository outboxEventRepository;
     private final LedgerEngineService ledgerEngineService;
 
     public LedgerController(
             AccountRepository accountRepository,
             JournalEntryRepository journalEntryRepository,
+            OutboxEventRepository outboxEventRepository,
             LedgerEngineService ledgerEngineService) {
         this.accountRepository = accountRepository;
         this.journalEntryRepository = journalEntryRepository;
+        this.outboxEventRepository = outboxEventRepository;
         this.ledgerEngineService = ledgerEngineService;
     }
 
@@ -48,6 +54,18 @@ public class LedgerController {
     @GetMapping("/ledger/journal")
     public ResponseEntity<List<JournalEntry>> listJournalEntries() {
         return ResponseEntity.ok(journalEntryRepository.findTop100ByOrderByCreatedAtDesc());
+    }
+
+    @GetMapping("/ledger/outbox")
+    public ResponseEntity<?> listOutboxEvents() {
+        List<OutboxEvent> events = outboxEventRepository.findTop50ByOrderByCreatedAtDesc();
+        Map<String, Object> response = new java.util.LinkedHashMap<>();
+        response.put("events", events);
+        response.put("pendingCount", outboxEventRepository.countByStatus(OutboxStatus.PENDING));
+        response.put("publishedCount", outboxEventRepository.countByStatus(OutboxStatus.PUBLISHED));
+        response.put("failedCount", outboxEventRepository.countByStatus(OutboxStatus.FAILED));
+        response.put("pollerIntervalMs", 200);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/ledger/audit")

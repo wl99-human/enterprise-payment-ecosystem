@@ -10,7 +10,10 @@ import {
   ShieldCheck,
   Server,
   GitMerge,
-  Skull
+  Skull,
+  Database,
+  Cpu,
+  FileCheck
 } from 'lucide-react';
 import { ActiveTab } from '../types';
 
@@ -68,6 +71,27 @@ export const SideNavRail: React.FC<SideNavRailProps> = ({
       isDlqBadge: dlqCount > 0,
     },
     {
+      id: 'OUTBOX' as ActiveTab,
+      label: 'Outbox CDC Relay',
+      icon: Database,
+      badge: 'ACID',
+      isDlqBadge: false,
+    },
+    {
+      id: 'PLAYGROUND' as ActiveTab,
+      label: 'DSA Playground',
+      icon: Cpu,
+      badge: 'O(k)',
+      isDlqBadge: false,
+    },
+    {
+      id: 'AUDIT' as ActiveTab,
+      label: 'Crypto Audit',
+      icon: FileCheck,
+      badge: 'SHA256',
+      isDlqBadge: false,
+    },
+    {
       id: 'METRICS' as ActiveTab,
       label: 'Telemetry & Chaos',
       icon: Activity,
@@ -95,11 +119,12 @@ export const SideNavRail: React.FC<SideNavRailProps> = ({
         padding: '16px 8px',
         transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         height: '100%',
+        minHeight: 0,
         flexShrink: 0,
       }}
     >
       {/* Navigation Links */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', minHeight: 0, flex: 1 }}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
