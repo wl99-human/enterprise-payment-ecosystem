@@ -100,8 +100,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         </div>
       </div>
 
-      {/* KPI Metric Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', flexShrink: 0 }}>
+      {/* Main Scrollable Content Panel */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px' }}>
+        {/* KPI Metric Cards Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', flexShrink: 0 }}>
         {/* Card 1: Total Ecosystem Liquidity */}
         <div className="ui-card" style={{ padding: '20px' }}>
           <div className="flex items-center justify-between" style={{ marginBottom: '10px' }}>
@@ -356,6 +358,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             </button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
