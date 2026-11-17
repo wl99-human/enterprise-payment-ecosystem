@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/payments")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class PaymentIngestionController {
 
     private final IdempotencyFastPathService idempotencyService;

@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
 @RequestMapping("/api/v1/playground")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class DsaPlaygroundController {
 
     private static final int BIT_ARRAY_SIZE = 64;

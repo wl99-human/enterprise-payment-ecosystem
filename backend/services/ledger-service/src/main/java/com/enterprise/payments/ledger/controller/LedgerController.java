@@ -20,7 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class LedgerController {
 
     private final AccountRepository accountRepository;
@@ -37,6 +37,38 @@ public class LedgerController {
         this.journalEntryRepository = journalEntryRepository;
         this.outboxEventRepository = outboxEventRepository;
         this.ledgerEngineService = ledgerEngineService;
+    }
+
+    @jakarta.annotation.PostConstruct
+    public void initDefaultAccounts() {
+        if (accountRepository.count() == 0) {
+            List<Account> defaultAccounts = List.of(
+                    Account.builder().id("acc_alice").ownerId("usr_alice").currency("USD").balance(new BigDecimal("10000.0000")).build(),
+                    Account.builder().id("acc_bob").ownerId("usr_bob").currency("USD").balance(new BigDecimal("5000.0000")).build(),
+                    Account.builder().id("acc_charlie").ownerId("usr_charlie").currency("USD").balance(new BigDecimal("2500.0000")).build(),
+                    Account.builder().id("acc_treasury").ownerId("org_treasury").currency("USD").balance(new BigDecimal("100000.0000")).build(),
+                    Account.builder().id("acc_alice_01").ownerId("usr_alice").currency("USD").balance(new BigDecimal("10000.0000")).build(),
+                    Account.builder().id("acc_bob_02").ownerId("usr_bob").currency("USD").balance(new BigDecimal("5000.0000")).build(),
+                    Account.builder().id("acc_charlie_03").ownerId("usr_charlie").currency("USD").balance(new BigDecimal("7500.0000")).build(),
+                    Account.builder().id("acc_merchant_prime").ownerId("org_merchant").currency("USD").balance(new BigDecimal("25000.0000")).build(),
+                    Account.builder().id("acc_treasury_vault").ownerId("org_treasury").currency("USD").balance(new BigDecimal("1000000.0000")).build()
+            );
+            accountRepository.saveAll(defaultAccounts);
+        }
+
+        if (journalEntryRepository.count() == 0) {
+            PaymentInitEvent seedEvent = PaymentInitEvent.builder()
+                    .transactionId("tx_genesis_bootstrap")
+                    .idempotencyKey("idem_genesis_bootstrap")
+                    .senderAccountId("acc_treasury")
+                    .receiverAccountId("acc_alice")
+                    .amountMinorUnits(25000L)
+                    .currency("USD")
+                    .payloadHash("genesis")
+                    .createdAt(Instant.now())
+                    .build();
+            ledgerEngineService.processPaymentInit(seedEvent);
+        }
     }
 
     @GetMapping("/accounts")

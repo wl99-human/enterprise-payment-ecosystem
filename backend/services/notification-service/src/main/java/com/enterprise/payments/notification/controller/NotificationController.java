@@ -10,7 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/notifications")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class NotificationController {
 
     private final PaymentSettledConsumer settledConsumer;

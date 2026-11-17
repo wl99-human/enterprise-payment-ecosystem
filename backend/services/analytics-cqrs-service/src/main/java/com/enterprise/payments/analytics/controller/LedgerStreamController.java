@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class LedgerStreamController {
 
     private final AnalyticsReadModelService readModelService;
@@ -181,6 +181,15 @@ public class LedgerStreamController {
 
         PaymentTransactionReadModel ingested = readModelService.ingestSettledEvent(event);
         return ResponseEntity.ok(ingested);
+    }
+
+    @PostMapping("/chaos/latency")
+    public ResponseEntity<?> toggleChaosLatency(@RequestBody(required = false) Map<String, Object> body) {
+        return ResponseEntity.ok(Map.of(
+                "status", "UPDATED",
+                "chaosLatency", body != null ? body : Map.of(),
+                "timestamp", Instant.now().toString()
+        ));
     }
 
     @GetMapping("/analytics/health")

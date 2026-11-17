@@ -11,8 +11,16 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true
       },
+      '/api/v1/playground': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      },
+      '/api/v1/ledger/stream': {
+        target: 'http://localhost:8083',
+        changeOrigin: true
+      },
       '/api/v1/ledger': {
-        target: 'http://localhost:8083', // Analytics CQRS stream for ledger
+        target: 'http://localhost:8081',
         changeOrigin: true
       },
       '/api/v1/accounts': {
@@ -24,6 +32,10 @@ export default defineConfig({
         changeOrigin: true
       },
       '/api/v1/metrics': {
+        target: 'http://localhost:8083',
+        changeOrigin: true
+      },
+      '/api/v1/chaos': {
         target: 'http://localhost:8083',
         changeOrigin: true
       },

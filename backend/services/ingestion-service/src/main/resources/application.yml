@@ -6,7 +6,7 @@ spring:
     name: ingestion-service
   threads:
     virtual:
-      enabled: true
+      enabled: ${SPRING_THREADS_VIRTUAL_ENABLED:false}
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
@@ -16,6 +16,7 @@ spring:
       retries: 3
       properties:
         enable.idempotence: true
+        max.block.ms: 500
 
 ecosystem:
   security:
