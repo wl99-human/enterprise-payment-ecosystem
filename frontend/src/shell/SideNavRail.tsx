@@ -8,7 +8,9 @@ import {
   ChevronLeft, 
   ChevronRight,
   ShieldCheck,
-  Server
+  Server,
+  GitMerge,
+  Skull
 } from 'lucide-react';
 import { ActiveTab } from '../types';
 
@@ -18,6 +20,7 @@ interface SideNavRailProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   queuedCount?: number;
+  dlqCount?: number;
 }
 
 export const SideNavRail: React.FC<SideNavRailProps> = ({
@@ -26,6 +29,7 @@ export const SideNavRail: React.FC<SideNavRailProps> = ({
   isCollapsed,
   onToggleCollapse,
   queuedCount = 0,
+  dlqCount = 0,
 }) => {
   const navItems = [
     {
@@ -33,30 +37,49 @@ export const SideNavRail: React.FC<SideNavRailProps> = ({
       label: 'Overview',
       icon: LayoutDashboard,
       badge: null,
+      isDlqBadge: false,
     },
     {
       id: 'CHECKOUT' as ActiveTab,
       label: 'Send Money',
       icon: Send,
       badge: queuedCount > 0 ? `${queuedCount} queued` : null,
+      isDlqBadge: false,
     },
     {
       id: 'LEDGER' as ActiveTab,
       label: 'Ledger & Audit',
       icon: ReceiptText,
       badge: 'Live',
+      isDlqBadge: false,
+    },
+    {
+      id: 'FX_DAG' as ActiveTab,
+      label: 'FX Routing DAG',
+      icon: GitMerge,
+      badge: 'Dijkstra',
+      isDlqBadge: false,
+    },
+    {
+      id: 'DLQ' as ActiveTab,
+      label: 'DLQ Workbench',
+      icon: Skull,
+      badge: dlqCount > 0 ? `${dlqCount} alert` : null,
+      isDlqBadge: dlqCount > 0,
     },
     {
       id: 'METRICS' as ActiveTab,
       label: 'Telemetry & Chaos',
       icon: Activity,
       badge: null,
+      isDlqBadge: false,
     },
     {
       id: 'ACCOUNTS' as ActiveTab,
       label: 'Accounts Vault',
       icon: Wallet,
       badge: null,
+      isDlqBadge: false,
     },
   ];
 
@@ -105,8 +128,8 @@ export const SideNavRail: React.FC<SideNavRailProps> = ({
                         fontWeight: 700,
                         padding: '1px 6px',
                         borderRadius: '10px',
-                        backgroundColor: item.badge === 'Live' ? '#e6f4ea' : '#feefc3',
-                        color: item.badge === 'Live' ? '#1e8e3e' : '#b06000',
+                        backgroundColor: item.isDlqBadge ? '#fce8e6' : item.badge === 'Live' ? '#e6f4ea' : item.badge === 'Dijkstra' ? '#e8f0fe' : '#feefc3',
+                        color: item.isDlqBadge ? '#d93025' : item.badge === 'Live' ? '#1e8e3e' : item.badge === 'Dijkstra' ? '#1a73e8' : '#b06000',
                       }}
                     >
                       {item.badge}
@@ -125,7 +148,7 @@ export const SideNavRail: React.FC<SideNavRailProps> = ({
                     width: '6px',
                     height: '6px',
                     borderRadius: '50%',
-                    backgroundColor: item.badge === 'Live' ? '#1e8e3e' : '#f9ab00',
+                    backgroundColor: item.isDlqBadge ? '#d93025' : item.badge === 'Live' ? '#1e8e3e' : '#1a73e8',
                   }}
                 />
               )}

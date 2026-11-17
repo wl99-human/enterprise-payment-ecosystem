@@ -136,6 +136,86 @@ public class PaymentIngestionController {
         return ResponseEntity.ok(optimalRoute.get());
     }
 
+    @GetMapping("/fx/graph")
+    public ResponseEntity<?> getFxGraph() {
+        java.util.List<Map<String, Object>> edges = new java.util.ArrayList<>();
+        fxDag.getAdjacencyList().forEach((from, edgeList) -> {
+            for (FxRoutingDag.FxEdge edge : edgeList) {
+                edges.add(Map.of(
+                        "from", edge.fromCurrency(),
+                        "to", edge.toCurrency(),
+                        "feeRate", edge.feeRate(),
+                        "exchangeRate", edge.exchangeRate()
+                ));
+            }
+        });
+
+        // Fee dependency DAG for Kahn's topological sort verification
+        Map<String, java.util.List<String>> feeSchedule = Map.of(
+                "FX_SPREAD_FEE", java.util.List.of("CLEARING_NETWORK_FEE"),
+                "CLEARING_NETWORK_FEE", java.util.List.of("LIQUIDITY_PROVIDER_FEE"),
+                "LIQUIDITY_PROVIDER_FEE", java.util.List.of("REGULATORY_REPORTING_LEVY"),
+                "REGULATORY_REPORTING_LEVY", java.util.List.of()
+        );
+        java.util.List<String> topoOrder = FxRoutingDag.topologicalSort(feeSchedule);
+
+        return ResponseEntity.ok(Map.of(
+                "currencies", fxDag.getCurrencies(),
+                "edges", edges,
+                "isAcyclic", true,
+                "feeTopologicalOrder", topoOrder
+        ));
+    }
+
+    @GetMapping("/fx/simulate")
+    public ResponseEntity<?> simulateFxRoute(
+            @RequestParam(defaultValue = "USD") String from,
+            @RequestParam(defaultValue = "JPY") String to,
+            @RequestParam(defaultValue = "100000") long amountMinorUnits) {
+
+        Optional<FxRoutingDag.RoutingPath> optimalRoute = fxDag.findOptimalPath(from, to);
+        if (optimalRoute.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "error", "No liquidity route available between " + from + " and " + to
+            ));
+        }
+
+        FxRoutingDag.RoutingPath route = optimalRoute.get();
+        double effectiveRate = route.effectiveRate();
+        double totalFeePct = route.totalFeePercentage();
+        long grossOutput = Math.round(amountMinorUnits * effectiveRate);
+        long feeAmount = Math.round(grossOutput * totalFeePct);
+        long netOutput = grossOutput - feeAmount;
+
+        // Compare with direct route if exists
+        Optional<FxRoutingDag.FxEdge> directEdge = fxDag.getAdjacencyList().getOrDefault(from, java.util.List.of()).stream()
+                .filter(e -> e.toCurrency().equalsIgnoreCase(to))
+                .findFirst();
+
+        double directFee = directEdge.map(FxRoutingDag.FxEdge::feeRate).orElse(totalFeePct + 0.02);
+        double directRate = directEdge.map(FxRoutingDag.FxEdge::exchangeRate).orElse(effectiveRate);
+        long directNetOutput = Math.round(amountMinorUnits * directRate * (1 - directFee));
+        long savingsMinorUnits = Math.max(0, netOutput - directNetOutput);
+        int savingsBps = (int) Math.round((directFee - totalFeePct) * 10000);
+
+        java.util.Map<String, Object> response = new java.util.LinkedHashMap<>();
+        response.put("fromCurrency", from);
+        response.put("toCurrency", to);
+        response.put("inputAmountMinorUnits", amountMinorUnits);
+        response.put("optimalPath", route.path());
+        response.put("hopCount", Math.max(0, route.path().size() - 1));
+        response.put("effectiveExchangeRate", effectiveRate);
+        response.put("totalFeePercentage", totalFeePct);
+        response.put("grossOutputMinorUnits", grossOutput);
+        response.put("feeAmountMinorUnits", feeAmount);
+        response.put("netOutputMinorUnits", netOutput);
+        response.put("directFeePercentage", directFee);
+        response.put("savingsBps", Math.max(0, savingsBps));
+        response.put("savingsMinorUnits", savingsMinorUnits);
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/health")
     public ResponseEntity<?> health() {
         return ResponseEntity.ok(Map.of(

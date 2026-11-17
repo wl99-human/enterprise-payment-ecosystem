@@ -1,4 +1,4 @@
-export type ActiveTab = 'OVERVIEW' | 'CHECKOUT' | 'LEDGER' | 'METRICS' | 'ACCOUNTS';
+export type ActiveTab = 'OVERVIEW' | 'CHECKOUT' | 'LEDGER' | 'METRICS' | 'ACCOUNTS' | 'DLQ' | 'FX_DAG';
 
 export type StepperStage = 
   | 'IDLE' 
@@ -55,4 +55,38 @@ export interface OfflineQueuedTransaction {
   id: string;
   payload: TransferPayload;
   queuedAt: number;
+}
+
+export interface PaymentDlqItem {
+  transactionId: string;
+  idempotencyKey: string;
+  originalTopic: string;
+  failureReason: string;
+  retryCount: number;
+  stackTraceSnippet: string;
+  payload?: any;
+  failedAt: string;
+}
+
+export interface FxEdgeData {
+  from: string;
+  to: string;
+  feeRate: number;
+  exchangeRate: number;
+}
+
+export interface FxSimulationResult {
+  fromCurrency: string;
+  toCurrency: string;
+  inputAmountMinorUnits: number;
+  optimalPath: string[];
+  hopCount: number;
+  effectiveExchangeRate: number;
+  totalFeePercentage: number;
+  grossOutputMinorUnits: number;
+  feeAmountMinorUnits: number;
+  netOutputMinorUnits: number;
+  directFeePercentage: number;
+  savingsBps: number;
+  savingsMinorUnits: number;
 }

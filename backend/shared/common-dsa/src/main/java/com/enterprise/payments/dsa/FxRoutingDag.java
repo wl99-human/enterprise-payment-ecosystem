@@ -19,6 +19,14 @@ public class FxRoutingDag {
     private final Map<String, List<FxEdge>> adjacencyList = new HashMap<>();
     private final Set<String> currencies = new HashSet<>();
 
+    public synchronized Map<String, List<FxEdge>> getAdjacencyList() {
+        return Collections.unmodifiableMap(adjacencyList);
+    }
+
+    public synchronized Set<String> getCurrencies() {
+        return Collections.unmodifiableSet(currencies);
+    }
+
     public synchronized void addLiquidityPair(String from, String to, double feeRate, double exchangeRate) {
         if (feeRate < 0 || exchangeRate <= 0) {
             throw new IllegalArgumentException("Invalid fee or exchange rate");

@@ -64,4 +64,19 @@ public class DeadLetterQueueManager {
     public List<PaymentDlqEvent> getRecentDlqEvents() {
         return List.copyOf(localDlqStore);
     }
+
+    public synchronized java.util.Optional<PaymentDlqEvent> removeEvent(String txId) {
+        for (int i = 0; i < localDlqStore.size(); i++) {
+            if (localDlqStore.get(i).getTransactionId().equalsIgnoreCase(txId)) {
+                return java.util.Optional.of(localDlqStore.remove(i));
+            }
+        }
+        return java.util.Optional.empty();
+    }
+
+    public synchronized List<PaymentDlqEvent> clearAllEvents() {
+        List<PaymentDlqEvent> copy = new LinkedList<>(localDlqStore);
+        localDlqStore.clear();
+        return copy;
+    }
 }

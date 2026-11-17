@@ -7,6 +7,8 @@ import { CheckoutMfe } from '../remotes/checkout/CheckoutMfe';
 import { LedgerActivityMfe } from '../remotes/ledger/LedgerActivityMfe';
 import { MetricsMfe } from '../remotes/metrics/MetricsMfe';
 import { AccountsVaultView } from '../remotes/accounts/AccountsVaultView';
+import { DlqWorkbenchView } from '../remotes/dlq/DlqWorkbenchView';
+import { FxDagVisualizerView } from '../remotes/fx/FxDagVisualizerView';
 import { ErrorBoundary } from './ErrorBoundary';
 
 const INITIAL_ACCOUNTS: Record<string, Account> = {
@@ -49,9 +51,16 @@ export const AppShell: React.FC = () => {
   // Synchronize active view with browser URL hash for direct links and back/forward navigation
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.replace('#/', '').toUpperCase();
-      if (['OVERVIEW', 'CHECKOUT', 'LEDGER', 'METRICS', 'ACCOUNTS'].includes(hash)) {
-        setActiveTab(hash as ActiveTab);
+      const rawHash = window.location.hash.replace('#/', '').toLowerCase();
+      if (rawHash === 'fx-dag' || rawHash === 'fx_dag') {
+        setActiveTab('FX_DAG');
+      } else if (rawHash === 'dlq') {
+        setActiveTab('DLQ');
+      } else {
+        const hash = rawHash.toUpperCase();
+        if (['OVERVIEW', 'CHECKOUT', 'LEDGER', 'METRICS', 'ACCOUNTS'].includes(hash)) {
+          setActiveTab(hash as ActiveTab);
+        }
       }
     };
 
@@ -67,7 +76,11 @@ export const AppShell: React.FC = () => {
 
   const handleSelectTab = (tab: ActiveTab) => {
     setActiveTab(tab);
-    window.location.hash = `#/${tab.toLowerCase()}`;
+    if (tab === 'FX_DAG') {
+      window.location.hash = '#/fx-dag';
+    } else {
+      window.location.hash = `#/${tab.toLowerCase()}`;
+    }
   };
 
   // Optimistic Balance Mutation: Instant local debit
@@ -166,6 +179,7 @@ export const AppShell: React.FC = () => {
           onSelectTab={handleSelectTab}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          dlqCount={globalSettledTransactions.filter(t => t.status === 'DLQ').length}
         />
 
         {/* Right Side: Page Viewport + Anchored Bottom Status Footer */}
@@ -235,6 +249,23 @@ export const AppShell: React.FC = () => {
                   onSelectAccount={setActiveAccountId}
                   onNavigateTab={handleSelectTab}
                   currency={currency}
+                />
+              </ErrorBoundary>
+            )}
+
+            {/* Page 6: Multi-Hop FX Routing DAG */}
+            {activeTab === 'FX_DAG' && (
+              <ErrorBoundary fallbackTitle="FX Routing DAG Crashed">
+                <FxDagVisualizerView />
+              </ErrorBoundary>
+            )}
+
+            {/* Page 7: Dead Letter Queue (DLQ) Workbench */}
+            {activeTab === 'DLQ' && (
+              <ErrorBoundary fallbackTitle="DLQ Workbench Crashed">
+                <DlqWorkbenchView
+                  isOutageSimulated={isOutageSimulated}
+                  onToggleOutage={setIsOutageSimulated}
                 />
               </ErrorBoundary>
             )}

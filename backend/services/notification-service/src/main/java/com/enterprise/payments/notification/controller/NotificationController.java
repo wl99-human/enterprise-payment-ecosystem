@@ -33,6 +33,59 @@ public class NotificationController {
         return ResponseEntity.ok(dlqManager.getRecentDlqEvents());
     }
 
+    @PostMapping("/dlq/replay/{txId}")
+    public ResponseEntity<?> replayDlqEvent(@PathVariable String txId) {
+        var optEvent = dlqManager.removeEvent(txId);
+        if (optEvent.isEmpty()) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.NOT_FOUND).body(Map.of(
+                    "error", "DLQ event not found with transactionId: " + txId
+            ));
+        }
+
+        var event = optEvent.get();
+        if (event.getPayload() instanceof PaymentSettledEvent pse) {
+            settledConsumer.consumePaymentSettled(pse);
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "status", "REPLAYED",
+                "transactionId", txId,
+                "replayedAt", java.time.Instant.now().toString()
+        ));
+    }
+
+    @PostMapping("/dlq/replay-all")
+    public ResponseEntity<?> replayAllDlqEvents() {
+        var events = dlqManager.clearAllEvents();
+        int replayedCount = 0;
+        for (var ev : events) {
+            if (ev.getPayload() instanceof PaymentSettledEvent pse) {
+                settledConsumer.consumePaymentSettled(pse);
+                replayedCount++;
+            }
+        }
+        return ResponseEntity.ok(Map.of(
+                "status", "ALL_REPLAYED",
+                "replayedCount", replayedCount,
+                "timestamp", java.time.Instant.now().toString()
+        ));
+    }
+
+    @DeleteMapping("/dlq/{txId}")
+    public ResponseEntity<?> quarantineDlqEvent(@PathVariable String txId) {
+        var opt = dlqManager.removeEvent(txId);
+        if (opt.isEmpty()) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.NOT_FOUND).body(Map.of(
+                    "error", "DLQ event not found with transactionId: " + txId
+            ));
+        }
+        return ResponseEntity.ok(Map.of(
+                "status", "QUARANTINED",
+                "transactionId", txId,
+                "message", "Poison pill quarantined and permanently evicted from retry pipeline."
+        ));
+    }
+
     @PostMapping("/simulate-failure")
     public ResponseEntity<?> toggleFailure(@RequestParam boolean enabled) {
         settledConsumer.setSimulateDownstreamOutage(enabled);
