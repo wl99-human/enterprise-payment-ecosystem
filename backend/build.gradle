@@ -15,11 +15,33 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'checkstyle'
+    apply plugin: 'jacoco'
 
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(17)
         }
+    }
+
+    checkstyle {
+        toolVersion = '10.17.0'
+        configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+        ignoreFailures = false
+        maxWarnings = 0
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.compilerArgs.addAll([
+            '-Xlint:deprecation',
+            '-Xlint:unchecked',
+            '-Xlint:cast',
+            '-Xlint:divzero',
+            '-Xlint:empty',
+            '-Xlint:finally',
+            '-Xlint:overrides'
+        ])
     }
 
     configurations {
@@ -47,5 +69,17 @@ subprojects {
             events 'passed', 'skipped', 'failed'
             showStandardStreams = false
         }
+    }
+
+    tasks.named('jacocoTestReport', JacocoReport) {
+        dependsOn tasks.named('test')
+        reports {
+            xml.required = true
+            html.required = true
+        }
+    }
+
+    tasks.named('check') {
+        dependsOn tasks.named('jacocoTestReport')
     }
 }

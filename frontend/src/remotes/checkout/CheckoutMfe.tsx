@@ -221,7 +221,7 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
     <div 
       id="checkout-mfe-container" 
       className="flex flex-col gap-3.5 animate-fade-in" 
-      style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', height: '100%', minHeight: 0 }}
+      style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', gap: '16px' }}
     >
       {/* Remote Header Bar (Compact & Fixed) */}
       <div 
@@ -235,7 +235,7 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
           flexShrink: 0,
         }}
       >
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div 
             style={{ 
               background: '#e8f0fe', 
@@ -259,7 +259,7 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {offlineQueue.length > 0 && (
             <span className="badge badge-pending" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
               <Clock size={11} /> {offlineQueue.length} Queued
@@ -283,15 +283,15 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
         style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', 
-          gap: '14px', 
+          gap: '18px', 
           flex: 1, 
           minHeight: 0, 
           overflowY: 'auto',
-          paddingRight: '2px',
+          padding: '2px 4px 8px 2px',
         }}
       >
         {/* Left Column: Balance & Transfer Form */}
-        <div className="flex flex-col gap-3.5">
+        <div className="flex flex-col gap-3.5" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Account Balance Card with Rollback Animation */}
           <div 
             id="optimistic-balance-card"
@@ -335,11 +335,11 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
 
           {/* Main Payment Form Card */}
           <div className="ui-card" style={{ padding: '16px 20px', borderRadius: '12px' }}>
-            <h3 style={{ fontSize: '0.92rem', fontWeight: 600, color: '#202124', marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 600, color: '#202124', marginBottom: '14px' }}>
               Transfer Details
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.78rem', color: '#202124', marginBottom: '4px', fontWeight: 600 }}>
                   Recipient Account
@@ -397,7 +397,7 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
             </div>
 
             {/* Preset Amounts */}
-            <div className="flex items-center gap-1.5" style={{ marginBottom: '14px' }}>
+            <div className="flex items-center gap-1.5" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <span style={{ fontSize: '0.74rem', color: '#5f6368', fontWeight: 500 }}>Presets:</span>
               {['25.00', '50.00', '250.00', '1000.00'].map(amt => (
                 <button
@@ -416,7 +416,7 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
             {/* Idempotency Key Ribbon */}
             <div 
               style={{ 
-                padding: '8px 12px', 
+                padding: '10px 14px', 
                 backgroundColor: '#f8f9fa', 
                 borderRadius: '8px', 
                 border: '1px solid #e8eaed',
@@ -424,7 +424,7 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
                 justifyContent: 'space-between', 
                 alignItems: 'center', 
                 fontSize: '0.74rem',
-                marginBottom: '14px',
+                marginBottom: '18px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -451,7 +451,7 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
             </div>
 
             {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 id="submit-transfer-btn"
                 className="btn-primary"
@@ -489,7 +489,7 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
         </div>
 
         {/* Right Column: Distributed Stepper & Engine Invariants */}
-        <div className="flex flex-col gap-3.5">
+        <div className="flex flex-col gap-3.5" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Real-Time Multi-Stage Progress Stepper Card */}
           <div className="ui-card" style={{ padding: '16px 20px', borderRadius: '12px' }}>
             <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#202124', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -636,8 +636,11 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
               <span>Distributed Architecture Guarantees</span>
             </div>
 
-            <div className="flex flex-col gap-2.5">
-              <div className="flex items-start gap-2.5">
+            <div className="flex flex-col gap-2.5" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div
+                className="flex items-start gap-2.5"
+                style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '10px 12px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e8eaed' }}
+              >
                 <div style={{ background: '#e8f0fe', padding: '6px', borderRadius: '6px', color: '#1a73e8', marginTop: '1px' }}>
                   <Lock size={13} />
                 </div>
@@ -651,7 +654,10 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-start gap-2.5">
+              <div
+                className="flex items-start gap-2.5"
+                style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '10px 12px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e8eaed' }}
+              >
                 <div style={{ background: '#e6f4ea', padding: '6px', borderRadius: '6px', color: '#1e8e3e', marginTop: '1px' }}>
                   <Database size={13} />
                 </div>
@@ -665,7 +671,10 @@ export const CheckoutMfe: React.FC<CheckoutMfeProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-start gap-2.5">
+              <div
+                className="flex items-start gap-2.5"
+                style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '10px 12px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e8eaed' }}
+              >
                 <div style={{ background: '#fef7e0', padding: '6px', borderRadius: '6px', color: '#b06000', marginTop: '1px' }}>
                   <GitBranch size={13} />
                 </div>

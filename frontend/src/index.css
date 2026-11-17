@@ -358,3 +358,11 @@ textarea:focus {
 .p-6 { padding: 24px; }
 .min-h-screen { min-height: 100vh; }
 .w-full { width: 100%; }
+.items-start { align-items: flex-start; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+.shrink-0 { flex-shrink: 0; }
+.gap-1\.5 { gap: 6px; }
+.gap-2\.5 { gap: 10px; }
+.gap-3\.5 { gap: 14px; }
+.gap-5 { gap: 20px; }
